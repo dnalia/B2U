@@ -1,11 +1,17 @@
 from django.db import models
 
-class User(models.Model):
-    username = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=100)
+from django.contrib.auth.models import AbstractUser
+
+class User(AbstractUser):
+    ROLE_CHOICES = [
+        ('TeamLead', 'Team Lead'),
+        ('SystemEngineer', 'System Engineer'),
+    ]
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='SystemEngineer')
 
     def __str__(self):
-        return self.username
+        return f"{self.username} ({self.role})"
+
     
 
 class TechRefresh(models.Model):

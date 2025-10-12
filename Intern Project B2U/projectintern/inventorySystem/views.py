@@ -10,23 +10,34 @@ def logout_view(request):
     return redirect('login')  # tukar kalau nama login kau lain
 
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
+
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
+        selected_role = request.POST.get('role')  # Get the role from dropdown
+
         user = authenticate(request, username=username, password=password)
 
-        if user:
-            login(request, user)
-
-            if user.groups.filter(name='TeamLead').exists():
-                return redirect('admin-dashboard')  # Admin view
+        if user is not None:
+            # Check if the selected role matches the user's role in the database
+            if user.role == selected_role:
+                login(request, user)
+                if user.role == 'TeamLead':
+                    return redirect('admin-dashboard')
+                else:
+                    return redirect('user-dashboard')
             else:
-                return redirect('user-dashboard')   # System Engineer view
+                messages.error(request, "Selected role does not match your account role.")
         else:
-            messages.error(request, "Username atau password salah")
+            messages.error(request, "Invalid username or password.")
 
     return render(request, 'login.html')
+
+
 
 
 def homepage(request):
