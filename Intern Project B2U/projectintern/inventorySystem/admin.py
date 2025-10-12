@@ -1,19 +1,20 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models import User, TechRefresh
 
-# --- Custom display for User model ---
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'role', 'is_staff', 'is_active')
-    list_filter = ('role', 'is_staff', 'is_active')
-    search_fields = ('username', 'email', 'role')
+class CustomUserAdmin(UserAdmin):
+    fieldsets = UserAdmin.fieldsets + (
+        (None, {'fields': ('role',)}),
+    )
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        (None, {'fields': ('role',)}),
+    )
+    list_display = ('username', 'email', 'role', 'is_staff', 'is_superuser')
+    list_filter = ('role', 'is_staff', 'is_superuser')
 
-# --- Custom display for TechRefresh model ---
+admin.site.register(User, CustomUserAdmin)
+
+# Register TechRefresh only once
 @admin.register(TechRefresh)
 class TechRefreshAdmin(admin.ModelAdmin):
-    list_display = (
-        'engineer_name', 'user_name', 'location',
-        'status', 'format_status', 'upload_status'
-    )
-    list_filter = ('status', 'format_status', 'upload_status')
-    search_fields = ('engineer_name', 'user_name', 'location')
+    list_display = ('engineer_name', 'user_name', 'status')

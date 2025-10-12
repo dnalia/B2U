@@ -1,49 +1,38 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login,logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .models import User,TechRefresh
 from django.contrib.auth.decorators import login_required
+from .models import User, TechRefresh
 
-
-def logout_view(request):
-    logout(request)
-    return redirect('login')  # tukar kalau nama login kau lain
-
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth import authenticate, login
 
 def login_view(request):
     if request.method == "POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        selected_role = request.POST.get('role')  # Get the role from dropdown
+        username = request.POST["username"]
+        password = request.POST["password"]
 
         user = authenticate(request, username=username, password=password)
-
         if user is not None:
-            # Check if the selected role matches the user's role in the database
-            if user.role == selected_role:
-                login(request, user)
-                if user.role == 'TeamLead':
-                    return redirect('admin-dashboard')
-                else:
-                    return redirect('user-dashboard')
+            login(request, user)
+            if user.role == "TeamLead":
+                return redirect("teamlead_dashboard")
+            elif user.role == "SystemEngineer":
+                return redirect("engineer_dashboard")
             else:
-                messages.error(request, "Selected role does not match your account role.")
+                messages.error(request, "Invalid role.")
         else:
             messages.error(request, "Invalid username or password.")
+    return render(request, "login.html")
 
-    return render(request, 'login.html')
-
-
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
 
 def homepage(request):
-    return render(request, 'homepage.html') 
+    return render(request, 'homepage.html')
 
-@login_required(login_url='login')  # 👈 user kena login dulu
+
+@login_required(login_url='login')
 def add_tech_refresh(request):
     if request.method == 'POST':
         TechRefresh.objects.create(
@@ -66,16 +55,28 @@ def add_tech_refresh(request):
 
     return render(request, 'tech_refresh.html')
 
+from django.contrib.auth.decorators import login_required
 
-@login_required(login_url='login')  # 👈 access list pun kena login
+@login_required
+def teamlead_dashboard(request):
+    return render(request, "teamlead_dashboard.html")
+
+@login_required
+def engineer_dashboard(request):
+    return render(request, "engineer_dashboard.html")
+
+
+@login_required(login_url='login')
 def tech_refresh_list(request):
     records = TechRefresh.objects.all()
     return render(request, 'tech_refresh_list.html', {'records': records})
 
-@login_required
+
+@login_required(login_url='login')
 def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
 
-@login_required
+
+@login_required(login_url='login')
 def user_dashboard(request):
     return render(request, 'user_dashboard.html')
