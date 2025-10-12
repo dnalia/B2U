@@ -3,6 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import User, TechRefresh
+from django.contrib.auth.hashers import make_password
+
 
 
 # ==============================
@@ -160,6 +162,162 @@ def reports(request):
         'rescheduled': rescheduled,
     }
     return render(request, 'reports.html', context)
+def manage_engineers(request):
+    engineers = User.objects.filter(role='SystemEngineer')
+    return render(request, 'manage_engineers.html', {'engineers': engineers})
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.hashers import make_password
+from .models import User  # or your custom User model
+
+def manage_engineers(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        role = request.POST.get("role")
+
+        # Create engineer
+        User.objects.create(
+            username=username,
+            email=email,
+            password=make_password(password),
+            role=role
+        )
+
+        # Redirect to the same page so the table reloads
+        return redirect('manage_engineers')
+
+    # GET request: load all engineers to display
+    engineers = User.objects.filter(role='SystemEngineer')  # show only engineers
+    return render(request, "manage_engineers.html", {"engineers": engineers})
+
+
+
+# 🧩 Manage all System Engineer accounts (Team Lead only)
+@login_required(login_url='login')
+def manage_users(request):
+    users = User.objects.all()
+
+    if request.method == "POST":
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        role = request.POST.get('role')  # get role from dropdown
+
+        if not username or not email or not password or not role:
+            messages.error(request, "Please fill all fields.")
+            return redirect('manage_engineers')
+
+        # Check if username already exists
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return redirect('manage_engineers')
+
+        # Create the user
+        User.objects.create(
+            username=username,
+            email=email,
+            password=make_password(password),  # hash the password
+            role=role
+        )
+
+        messages.success(request, f"User '{username}' created successfully!")
+        return redirect('manage_engineers')
+
+    context = {
+        'users': users
+    }
+    return render(request, 'manage_users.html', context)
+
+# ➕ Add new System Engineer
+@login_required
+def add_user(request):
+    if not request.user.role == 'TeamLead':
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists.')
+            return redirect('add_user')
+
+        user = User.objects.create(
+            username=username,
+            email=email,
+            password=make_password(password),
+            role='SystemEngineer'
+        )
+        user.save()
+        messages.success(request, 'System Engineer added successfully!')
+        return redirect('manage_users')
+
+    return render(request, 'add_user.html')
+
+
+# ✏️ Edit user details
+@login_required
+def edit_user(request, user_id):
+    if not request.user.role == 'TeamLead':
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    user = get_object_or_404(User, id=user_id)
+
+    if request.method == 'POST':
+        user.username = request.POST.get('username')
+        user.email = request.POST.get('email')
+        user.save()
+        messages.success(request, 'User updated successfully!')
+        return redirect('manage_users')
+
+    return render(request, 'edit_user.html', {'user': user})
+
+from django.shortcuts import get_object_or_404, redirect
+from .models import User
+
+def delete_engineer(request, engineer_id):
+    engineer = get_object_or_404(User, id=engineer_id, role='SystemEngineer')
+    engineer.delete()
+    return redirect('manage_engineers')
+
+
+
+# ❌ Delete user
+@login_required
+def delete_user(request, user_id):
+    if not request.user.role == 'TeamLead':
+        messages.error(request, "Access denied.")
+        return redirect('dashboard')
+
+    user = get_object_or_404(User, id=user_id)
+    user.delete()
+    messages.success(request, 'User deleted successfully!')
+    return redirect('manage_users')
+
+from django.shortcuts import get_object_or_404
+
+@login_required(login_url='login')
+def edit_engineer(request, engineer_id):
+    engineer = get_object_or_404(User, id=engineer_id, role__iexact='SystemEngineer')
+
+    if request.method == 'POST':
+        engineer.username = request.POST.get('username')
+        engineer.email = request.POST.get('email')
+        password = request.POST.get('password')
+        if password:
+            engineer.set_password(password)
+        engineer.save()
+        messages.success(request, 'Engineer updated successfully!')
+        return redirect('manage_engineers')
+
+    return render(request, 'edit_engineer.html', {'engineer': engineer})
+
+
 
 
 

@@ -60,3 +60,16 @@ class TechRefresh(models.Model):
 
     def __str__(self):
         return f"{self.engineer_name} - {self.user_name}"
+    
+class Inventory(models.Model):
+    item_name = models.CharField(max_length=100)
+    category = models.CharField(max_length=50)
+    quantity = models.IntegerField(default=0)
+    condition = models.CharField(max_length=50, choices=[('Good', 'Good'), ('Faulty', 'Faulty')])
+    location = models.CharField(max_length=100)
+    last_updated = models.DateTimeField(auto_now=True)
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.item_name
+

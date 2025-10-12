@@ -31,6 +31,24 @@ urlpatterns = [
     #report team lead part
     path('dashboard/teamlead/reports/', views.reports, name='reports'),
 
+    #Manage User
+    path('manage-users/', views.manage_users, name='manage_users'),
+    path('add-user/', views.add_user, name='add_user'),
+    path('edit-user/<int:user_id>/', views.edit_user, name='edit_user'),
+    path('delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
+    path('dashboard/teamlead/manage-engineers/edit/<int:engineer_id>/', 
+     views.edit_engineer, name='edit_engineer'),
+    path('dashboard/teamlead/manage-engineers/delete/<int:engineer_id>/', views.delete_engineer, name='delete_engineer'),
+
+
+    #Manage inventory
+    #path('inventory/', views.inventory_list, name='inventory_list'),
+    #path('inventory/add/', views.add_inventory, name='add_inventory'),
+    #path('inventory/edit/<int:item_id>/', views.edit_inventory, name='edit_inventory'),
+    #path('inventory/delete/<int:item_id>/', views.delete_inventory, name='delete_inventory'),
+
+
+
 
 
 

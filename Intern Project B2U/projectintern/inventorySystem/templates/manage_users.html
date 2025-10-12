@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Engineers{% endblock %}
+
+{% block content %}
+<h1>👥 Manage Engineers</h1>
+
+<!-- Quick action button -->
+<div style="margin-bottom: 20px;">
+    <button id="create-engineer-btn" style="
+        background-color: #004aad; 
+        color: white; 
+        padding: 10px 20px; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer;
+        transition: 0.3s;">
+        + Create Engineer
+    </button>
+</div>
+
+<!-- Table listing engineers -->
+<table style="
+    width: 100%; 
+    border-collapse: collapse; 
+    background: white; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+">
+    <thead style="background-color: #004aad; color: white;">
+        <tr>
+            <th style="padding: 12px; text-align:left;">#</th>
+            <th style="padding: 12px; text-align:left;">Username</th>
+            <th style="padding: 12px; text-align:left;">Email</th>
+            <th style="padding: 12px; text-align:left;">Role</th>
+            <th style="padding: 12px; text-align:left;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in engineers %}
+        <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 12px;">{{ forloop.counter }}</td>
+            <td style="padding: 12px;">{{ user.username }}</td>
+            <td style="padding: 12px;">{{ user.email }}</td>
+            <td style="padding: 12px;">{{ user.role }}</td>
+            <td style="padding: 12px;">
+                <a href="{% url 'edit_engineer' user.id %}" style="
+                    background-color: #ffd700; 
+                    padding: 6px 12px; 
+                    border-radius: 6px; 
+                    color: black; 
+                    text-decoration: none; 
+                    margin-right: 5px;">Edit</a>
+                <a href="{% url 'delete_engineer' user.id %}" style="
+                    background-color: #ff4d4d; 
+                    padding: 6px 12px; 
+                    border-radius: 6px; 
+                    color: white; 
+                    text-decoration: none;">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="padding: 12px; text-align:center;">No engineers found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Create Engineer Modal / Form -->
+<div id="create-engineer-form" style="display:none; margin-top: 30px; background:white; padding:20px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <h2>Create New User Account</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <label>Username</label><br>
+        <input type="text" name="username" required style="padding:8px; width:100%; margin-bottom:10px;"><br>
+
+        <label>Email</label><br>
+        <input type="email" name="email" required style="padding:8px; width:100%; margin-bottom:10px;"><br>
+
+        <label>Password</label><br>
+        <input type="password" name="password" required style="padding:8px; width:100%; margin-bottom:10px;"><br>
+
+        <label>Role</label><br>
+        <select name="role" required style="padding:8px; width:100%; margin-bottom:10px;">
+            <option value="SystemEngineer">System Engineer</option>
+            <option value="TeamLead">Team Lead</option>
+        </select><br>
+
+        <button type="submit" style="
+            background-color: #004aad; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer;">Create Account</button>
+        <button type="button" id="cancel-btn" style="
+            background-color: #ccc; 
+            color: black; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer;">Cancel</button>
+    </form>
+</div>
+
+
+<script>
+    const createBtn = document.getElementById('create-engineer-btn');
+    const formDiv = document.getElementById('create-engineer-form');
+    const cancelBtn = document.getElementById('cancel-btn');
+
+    createBtn.addEventListener('click', () => {
+        formDiv.style.display = 'block';
+        createBtn.style.display = 'none';
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        formDiv.style.display = 'none';
+        createBtn.style.display = 'inline-block';
+    });
+</script>
+
+{% endblock %}

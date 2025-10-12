@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Engineer - Beyond2U</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fa;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #004aad;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        form input, form select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        form button {
+            margin-top: 20px;
+            width: 100%;
+            background-color: #004aad;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        form button:hover {
+            background-color: #003080;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #004aad;
+        }
+
+        .back-link:hover {
+            color: #003080;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Engineer: {{ engineer.username }}</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" value="{{ engineer.username }}" required>
+
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email" value="{{ engineer.email }}">
+
+            <label for="password">Password <small>(leave blank to keep current)</small></label>
+            <input type="password" name="password" id="password">
+
+            <label for="role">Role</label>
+            <select name="role" id="role" disabled>
+                <option value="SystemEngineer" selected>System Engineer</option>
+            </select>
+
+            <button type="submit">Update Engineer</button>
+        </form>
+
+        <a href="{% url 'manage_engineers' %}" class="back-link">← Back to Manage Engineers</a>
+    </div>
+</body>
+</html>
