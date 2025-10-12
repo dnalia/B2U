@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>📊 Reports Overview</h2>
+
+<table border="1" cellpadding="8">
+  <tr><th>Total Tasks</th><td>{{ total_tasks }}</td></tr>
+  <tr><th>Completed</th><td>{{ completed }}</td></tr>
+  <tr><th>Pending</th><td>{{ pending }}</td></tr>
+  <tr><th>Rescheduled</th><td>{{ rescheduled }}</td></tr>
+</table>
+
+<p><a href="{% url 'teamlead_dashboard' %}">⬅ Back to Dashboard</a></p>
+{% endblock %}

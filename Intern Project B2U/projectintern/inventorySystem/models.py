@@ -1,27 +1,33 @@
 from django.db import models
-
 from django.contrib.auth.models import AbstractUser
+
 
 class User(AbstractUser):
     ROLE_CHOICES = [
         ('TeamLead', 'Team Lead'),
         ('SystemEngineer', 'System Engineer'),
     ]
+
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='SystemEngineer')
+
+    def save(self, *args, **kwargs):
+        # Automatically assign TeamLead role if this user is a superuser
+        if self.is_superuser:
+            self.role = 'TeamLead'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.username} ({self.role})"
 
-    
 
 class TechRefresh(models.Model):
     engineer_name = models.CharField(max_length=100)
     user_name = models.CharField(max_length=100)
     location = models.CharField(max_length=200)
-    
+
     old_hostname = models.CharField(max_length=100)
     new_hostname = models.CharField(max_length=100)
-    
+
     old_serial_number = models.CharField(max_length=100)
     new_serial_number = models.CharField(max_length=100)
 
