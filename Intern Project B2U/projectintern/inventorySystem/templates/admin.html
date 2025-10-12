@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Dashboard</title>
+  <style>
+    :root {
+      --blue: #004aad;
+      --yellow: #ffc107;
+      --bg: #f6fbff;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --radius: 14px;
+      --gap: 18px;
+      font-family: "Poppins", "Inter", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: #0f172a;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--blue);
+      color: #fff;
+      width: 240px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px 0;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+    }
+
+    .sidebar .logo {
+      text-align: center;
+      font-weight: 700;
+      font-size: 20px;
+      background: var(--yellow);
+      color: var(--blue);
+      width: 56px;
+      height: 56px;
+      line-height: 56px;
+      border-radius: 12px;
+      margin: 0 auto 18px;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      padding: 0 16px;
+      gap: 10px;
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      transition: 0.2s;
+    }
+
+    .nav a:hover, .nav a.active {
+      background: rgba(255,255,255,0.15);
+    }
+
+    .logout-section {
+      padding: 0 16px;
+    }
+
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--blue);
+      background: var(--yellow);
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.2s;
+    }
+
+    .logout-btn:hover {
+      background: #ffd43b;
+      transform: translateX(4px);
+    }
+
+    /* Main content */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 26px 32px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 26px;
+      color: var(--blue);
+      margin: 0;
+    }
+
+    .welcome {
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--gap);
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 6px 22px rgba(14,30,80,0.06);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      transition: 0.15s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0,74,173,0.08);
+    }
+
+    .stat-icon {
+      font-size: 30px;
+      margin-bottom: 10px;
+      color: var(--blue);
+    }
+
+    .stat-title {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    /* Cards Grid */
+    .card-grid {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--gap);
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 6px 22px rgba(14,30,80,0.06);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 36px rgba(0,74,173,0.1);
+    }
+
+    .icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      background: linear-gradient(180deg,rgba(0,74,173,0.06),rgba(0,74,173,0.03));
+      color: var(--blue);
+      font-size: 28px;
+    }
+
+    .card h3 {
+      margin: 6px 0 4px;
+      font-size: 18px;
+      color: var(--blue);
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 800px) {
+      .sidebar {
+        width: 70px;
+      }
+      .nav a span, .logout-btn span { display: none; }
+      .nav a, .logout-btn { justify-content: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <aside class="sidebar">
+    <div>
+      <div class="logo">A</div>
+      <nav class="nav">
+        <a href="#" class="active">🏠 <span>Dashboard</span></a>
+        <a href="#">✔️ <span>Assign / Approve</span></a>
+        <a href="#">📄 <span>Reports</span></a>
+        <a href="#">🖥️ <span>Asset Refresh</span></a>
+        <a href="#">⚙️ <span>Tech Refresh</span></a>
+        <a href="#">⬆️ <span>Parts Upgrade</span></a>
+      </nav>
+    </div>
+    <div class="logout-section">
+      <a href="/logout/" class="logout-btn">🚪 <span>Logout</span></a>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <h1>Admin Dashboard</h1>
+      <div class="welcome">Welcome back, <strong>Team Lead</strong></div>
+    </header>
+
+    <!-- Dashboard Stats -->
+    <section class="stats-grid">
+
+    <div class="stat-card">
+    <div class="stat-icon">✔️</div>
+    <div class="stat-title">Total Submitted</div>
+    <div class="stat-value">24</div>
+    </div>
+    <div class="stat-card">
+    <div class="stat-icon">🕒</div>
+    <div class="stat-title">Pending Approvals</div>
+    <div class="stat-value">6</div>
+    </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-title">In Progress</div>
+        <div class="stat-value">5</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-title">Completed Jobs</div>
+        <div class="stat-value">18</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔧</div>
+        <div class="stat-title">Ongoing Upgrade</div>
+        <div class="stat-value">3</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
+
