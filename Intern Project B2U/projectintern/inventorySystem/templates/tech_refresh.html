@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tech Refresh Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f0f4f9;
+        }
+
+        /* Sidebar kiri */
+        .sidebar {
+            width: 220px;
+            background-color: #004aad;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 0;
+        }
+
+        .sidebar h1 {
+            font-size: 22px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 20px;
+            text-align: center;
+            font-size: 12px;
+            padding: 0 10px;
+        }
+
+        /* Container kanan */
+        .form-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px;
+        }
+
+        .form-box {
+            background-color: #fff;
+            width: 800px;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .form-box h2 {
+            color: #004aad;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .input-row .input-group {
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #004aad;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #003080;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar kiri -->
+    <div class="sidebar">
+        <h1>Beyond2U</h1>
+        <div class="sidebar-footer">© 2025 Beyond2U</div>
+    </div>
+
+    <!-- Container kanan -->
+    <div class="form-container">
+        <div class="form-box">
+            <h2>Tech Refresh (Asset Refresh)</h2>
+            <form>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Engineer Name</label>
+                        <input type="text" name="engineer_name">
+                    </div>
+                    <div class="input-group">
+                        <label>User Name</label>
+                        <input type="text" name="user_name">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Location</label>
+                    <input type="text" name="location">
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Old Hostname</label>
+                        <input type="text" name="old_hostname">
+                    </div>
+                    <div class="input-group">
+                        <label>New Hostname</label>
+                        <input type="text" name="new_hostname">
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Old Serial Number</label>
+                        <input type="text" name="old_serial">
+                    </div>
+                    <div class="input-group">
+                        <label>New Serial Number</label>
+                        <input type="text" name="new_serial">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Status</label>
+                    <select name="status">
+                        <option>Completed</option>
+                        <option>Pending</option>
+                        <option>Rescheduled</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Date (If rescheduled)</label>
+                    <input type="date" name="reschedule_date">
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Format Status</label>
+                        <select name="format_status">
+                            <option>Completed</option>
+                            <option>Pending</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Reason (If haven't formatted)</label>
+                        <input type="text" name="format_reason">
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Upload Status</label>
+                        <select name="upload_status">
+                            <option>Completed</option>
+                            <option>Pending</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Reason (If haven't uploaded)</label>
+                        <input type="text" name="upload_reason">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Remarks (if any)</label>
+                    <textarea name="remarks" rows="3"></textarea>
+                </div>
+
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

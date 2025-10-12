@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System Engineer Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f5f7fb;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 230px;
+            background-color: #004aad;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+        }
+
+        .sidebar h2 {
+            font-size: 22px;
+            margin-bottom: 30px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 12px 15px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+
+        .menu a:hover {
+            background-color: #003080;
+        }
+
+        /* Main content */
+        .content {
+            flex: 1;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #004aad;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            padding: 10px;
+            text-align: center;
+            background: #d9534f;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            background: #c9302c;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Beyond2U</h2>
+
+        <div class="menu">
+            <a href="#">➤ Dashboard Home</a>
+            <a href="{% url 'add-tech-refresh' %}">➤ Tech Refresh Form</a>
+            <a href="#">➤ My Submissions</a>
+            <a href="#">➤ Notifications</a>
+        </div>
+
+        <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="content">
+        <h1>Welcome, {{ request.user.username }}</h1>
+        <p>Select an option from the sidebar to continue.</p>
+    </div>
+
+</body>
+</html>
