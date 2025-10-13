@@ -1,10 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import User, TechRefresh
+from django.contrib import messages
 from django.contrib.auth.hashers import make_password
-
+from .models import User, TechRefresh, TechRefreshRequest
 
 
 # ==============================
@@ -16,21 +15,17 @@ def login_view(request):
         password = request.POST.get("password")
 
         user = authenticate(request, username=username, password=password)
-
         if user is not None:
             login(request, user)
 
-            # Normalize role matching (case-insensitive)
             role = user.role.lower()
-
             if role == "teamlead":
                 return redirect("teamlead_dashboard")
             elif role == "systemengineer":
                 return redirect("engineer_dashboard")
             else:
-                messages.error(request, "Invalid role assigned to this account.")
+                messages.error(request, "Invalid role assigned.")
                 logout(request)
-                return redirect("login")
         else:
             messages.error(request, "Invalid username or password.")
 
@@ -71,7 +66,7 @@ def add_tech_refresh(request):
             reason_not_uploaded=request.POST.get('reason_not_uploaded'),
             remarks=request.POST.get('remarks'),
         )
-        return redirect('tech-refresh-list')
+        return redirect('tech_refresh_list')
 
     return render(request, 'tech_refresh.html')
 
@@ -87,219 +82,51 @@ def tech_refresh_list(request):
 # ==============================
 @login_required(login_url='login')
 def teamlead_dashboard(request):
-    # Restrict access: Only Team Leads can access this page
     if request.user.role.lower() != 'teamlead':
         return redirect('engineer_dashboard')
 
-    total_engineers = User.objects.filter(role__iexact='SystemEngineer').count()
-    total_tasks = TechRefresh.objects.count()
-    pending_tasks = TechRefresh.objects.filter(status__iexact='Pending').count()
-    completed_tasks = TechRefresh.objects.filter(status__iexact='Completed').count()
-
     context = {
-        'total_engineers': total_engineers,
-        'total_tasks': total_tasks,
-        'pending_tasks': pending_tasks,
-        'completed_tasks': completed_tasks,
+        'total_engineers': User.objects.filter(role__iexact='SystemEngineer').count(),
+        'total_tasks': TechRefresh.objects.count(),
+        'pending_tasks': TechRefresh.objects.filter(status__iexact='Pending').count(),
+        'completed_tasks': TechRefresh.objects.filter(status__iexact='Completed').count(),
     }
     return render(request, 'teamlead_dashboard.html', context)
 
 
 @login_required(login_url='login')
 def engineer_dashboard(request):
-    # Restrict access: Only Engineers can access this page
     if request.user.role.lower() != 'systemengineer':
         return redirect('teamlead_dashboard')
 
-    return render(request, "engineer_dashboard.html")
+    requests = TechRefreshRequest.objects.filter(engineer=request.user).order_by('-submitted_at')
+    return render(request, 'engineer_dashboard.html', {'requests': requests})
 
 
-@login_required(login_url='login')
-def admin_dashboard(request):
-    return render(request, 'admin_dashboard.html')
-
-
-@login_required(login_url='login')
-def user_dashboard(request):
-    return render(request, 'user_dashboard.html')
-
+# ==============================
+# 👥 MANAGE ENGINEERS
+# ==============================
 @login_required(login_url='login')
 def manage_engineers(request):
     if request.user.role.lower() != 'teamlead':
         return redirect('engineer_dashboard')
 
-    engineers = User.objects.filter(role__iexact='SystemEngineer')
-    return render(request, 'manage_engineers.html', {'engineers': engineers})
-
-@login_required(login_url='login')
-def approvals(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
-    return render(request, 'approvals.html')
-
-@login_required(login_url='login')
-def all_records(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
-
-    records = TechRefresh.objects.all()
-    return render(request, 'all_records.html', {'records': records})
-
-@login_required(login_url='login')
-def reports(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
-
-    total_tasks = TechRefresh.objects.count()
-    completed = TechRefresh.objects.filter(status__iexact='Completed').count()
-    pending = TechRefresh.objects.filter(status__iexact='Pending').count()
-    rescheduled = TechRefresh.objects.filter(status__iexact='Rescheduled').count()
-
-    context = {
-        'total_tasks': total_tasks,
-        'completed': completed,
-        'pending': pending,
-        'rescheduled': rescheduled,
-    }
-    return render(request, 'reports.html', context)
-def manage_engineers(request):
-    engineers = User.objects.filter(role='SystemEngineer')
-    return render(request, 'manage_engineers.html', {'engineers': engineers})
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.hashers import make_password
-from .models import User  # or your custom User model
-
-def manage_engineers(request):
     if request.method == "POST":
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
-        role = request.POST.get("role")
 
-        # Create engineer
         User.objects.create(
-            username=username,
-            email=email,
-            password=make_password(password),
-            role=role
-        )
-
-        # Redirect to the same page so the table reloads
-        return redirect('manage_engineers')
-
-    # GET request: load all engineers to display
-    engineers = User.objects.filter(role='SystemEngineer')  # show only engineers
-    return render(request, "manage_engineers.html", {"engineers": engineers})
-
-
-
-# 🧩 Manage all System Engineer accounts (Team Lead only)
-@login_required(login_url='login')
-def manage_users(request):
-    users = User.objects.all()
-
-    if request.method == "POST":
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        role = request.POST.get('role')  # get role from dropdown
-
-        if not username or not email or not password or not role:
-            messages.error(request, "Please fill all fields.")
-            return redirect('manage_engineers')
-
-        # Check if username already exists
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists.")
-            return redirect('manage_engineers')
-
-        # Create the user
-        User.objects.create(
-            username=username,
-            email=email,
-            password=make_password(password),  # hash the password
-            role=role
-        )
-
-        messages.success(request, f"User '{username}' created successfully!")
-        return redirect('manage_engineers')
-
-    context = {
-        'users': users
-    }
-    return render(request, 'manage_users.html', context)
-
-# ➕ Add new System Engineer
-@login_required
-def add_user(request):
-    if not request.user.role == 'TeamLead':
-        messages.error(request, "Access denied.")
-        return redirect('dashboard')
-
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
-            return redirect('add_user')
-
-        user = User.objects.create(
             username=username,
             email=email,
             password=make_password(password),
             role='SystemEngineer'
         )
-        user.save()
-        messages.success(request, 'System Engineer added successfully!')
-        return redirect('manage_users')
+        return redirect('manage_engineers')
 
-    return render(request, 'add_user.html')
+    engineers = User.objects.filter(role__iexact='SystemEngineer')
+    return render(request, "manage_engineers.html", {"engineers": engineers})
 
-
-# ✏️ Edit user details
-@login_required
-def edit_user(request, user_id):
-    if not request.user.role == 'TeamLead':
-        messages.error(request, "Access denied.")
-        return redirect('dashboard')
-
-    user = get_object_or_404(User, id=user_id)
-
-    if request.method == 'POST':
-        user.username = request.POST.get('username')
-        user.email = request.POST.get('email')
-        user.save()
-        messages.success(request, 'User updated successfully!')
-        return redirect('manage_users')
-
-    return render(request, 'edit_user.html', {'user': user})
-
-from django.shortcuts import get_object_or_404, redirect
-from .models import User
-
-def delete_engineer(request, engineer_id):
-    engineer = get_object_or_404(User, id=engineer_id, role='SystemEngineer')
-    engineer.delete()
-    return redirect('manage_engineers')
-
-
-
-# ❌ Delete user
-@login_required
-def delete_user(request, user_id):
-    if not request.user.role == 'TeamLead':
-        messages.error(request, "Access denied.")
-        return redirect('dashboard')
-
-    user = get_object_or_404(User, id=user_id)
-    user.delete()
-    messages.success(request, 'User deleted successfully!')
-    return redirect('manage_users')
-
-from django.shortcuts import get_object_or_404
 
 @login_required(login_url='login')
 def edit_engineer(request, engineer_id):
@@ -318,6 +145,90 @@ def edit_engineer(request, engineer_id):
     return render(request, 'edit_engineer.html', {'engineer': engineer})
 
 
+@login_required(login_url='login')
+def delete_engineer(request, engineer_id):
+    engineer = get_object_or_404(User, id=engineer_id, role__iexact='SystemEngineer')
+    engineer.delete()
+    return redirect('manage_engineers')
 
 
+# ==============================
+# 📦 REQUEST MANAGEMENT
+# ==============================
+@login_required(login_url='login')
+def create_request(request):
+    if request.method == 'POST':
+        TechRefreshRequest.objects.create(
+            engineer=request.user,
+            location=request.POST.get('location'),
+            user=request.POST.get('user'),
+            old_barcode=request.POST.get('old_barcode'),
+            new_barcode=request.POST.get('new_barcode'),
+            status='Pending',
+            remarks=request.POST.get('remarks'),
+            proof=request.FILES.get('proof')
+        )
+        return redirect('engineer_dashboard')
+    return render(request, 'create_request.html')
 
+
+@login_required(login_url='login')
+def manage_requests(request):
+    if request.user.role.lower() != 'teamlead':
+        messages.error(request, "You do not have permission to access this page.")
+        return redirect('login')
+
+    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
+    return render(request, 'manage_requests.html', {'requests': requests_list})
+
+
+@login_required(login_url='login')
+def approve_request(request, request_id):
+    req = get_object_or_404(TechRefreshRequest, id=request_id)
+    req.status = "Approved"
+    req.save()
+    messages.success(request, f"Request by {req.engineer.username} has been approved.")
+    return redirect('manage_requests')
+
+
+@login_required(login_url='login')
+def reject_request(request, request_id):
+    req = get_object_or_404(TechRefreshRequest, id=request_id)
+    req.status = "Rejected"
+    req.save()
+    messages.warning(request, f"Request by {req.engineer.username} has been rejected.")
+    return redirect('manage_requests')
+
+
+# ==============================
+# 📈 REPORTS / APPROVALS / RECORDS
+# ==============================
+@login_required(login_url='login')
+def approvals(request):
+    if request.user.role.lower() != 'teamlead':
+        return redirect('engineer_dashboard')
+    return render(request, 'approvals.html')
+
+
+@login_required(login_url='login')
+def all_records(request):
+    if request.user.role.lower() != 'teamlead':
+        return redirect('engineer_dashboard')
+
+    records = TechRefresh.objects.all()
+    return render(request, 'all_records.html', {'records': records})
+
+
+@login_required(login_url='login')
+def reports(request):
+    if request.user.role.lower() != 'teamlead':
+        return redirect('engineer_dashboard')
+
+    total_tasks = TechRefresh.objects.count()
+    context = {
+        'total_tasks': total_tasks,
+        'completed': TechRefresh.objects.filter(status='Completed').count(),
+        'pending': TechRefresh.objects.filter(status='Pending').count(),
+        'rescheduled': TechRefresh.objects.filter(status='Rescheduled').count(),
+    }
+    return render(request, 'reports.html', context)

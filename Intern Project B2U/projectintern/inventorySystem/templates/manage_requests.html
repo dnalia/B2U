@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Requests - Beyond2U</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fa;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background-color: #004aad;
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #003080;
+        }
+
+        .content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #004aad;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #004aad;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .status-pending {
+            color: #f0ad4e;
+            font-weight: bold;
+        }
+        .status-approved {
+            color: #5cb85c;
+            font-weight: bold;
+        }
+        .status-rejected {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: white;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+
+        .approve-btn { background-color: #5cb85c; }
+        .reject-btn { background-color: #d9534f; }
+        .approve-btn:hover { background-color: #4cae4c; }
+        .reject-btn:hover { background-color: #c9302c; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
+    <a href="{% url 'manage_requests' %}">📥 Manage Requests</a>
+    <a href="{% url 'reports' %}">📊 Reports</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
+</div>
+
+<div class="content">
+    <h1>Manage Requests</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Engineer</th>
+                <th>Location</th>
+                <th>User</th>
+                <th>Status</th>
+                <th>Submitted At</th>
+                <th>Proof</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ req.engineer.username }}</td>
+                <td>{{ req.location }}</td>
+                <td>{{ req.user }}</td>
+                <td class="status-{{ req.status|lower }}">{{ req.status }}</td>
+                <td>{{ req.submitted_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    {% if req.proof %}
+                    <a href="{{ req.proof.url }}" target="_blank">View</a>
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if req.status == "Pending" %}
+                        <a href="{% url 'approve_request' req.id %}" class="btn approve-btn">Approve</a>
+                        <a href="{% url 'reject_request' req.id %}" class="btn reject-btn">Reject</a>
+                    {% else %}
+                        <span>—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align:center;">No requests found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

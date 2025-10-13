@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Tech Refresh Request</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fa;
+            margin: 0;
+            padding: 30px;
+        }
+        h1 {
+            color: #004aad;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 700px;
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #004aad;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003080;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Create Tech Refresh Request</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Location</label>
+        <input type="text" name="location" required>
+
+        <label>User</label>
+        <input type="text" name="user" required>
+
+        <label>Old Laptop Barcode</label>
+        <input type="text" name="old_barcode">
+
+        <label>New Laptop Barcode</label>
+        <input type="text" name="new_barcode">
+
+        <label>Status</label>
+        <select name="status">
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+        </select>
+
+        <label>Remarks</label>
+        <textarea name="remarks"></textarea>
+
+        <label>Upload Proof (Image/PDF)</label>
+        <input type="file" name="proof">
+
+        <button type="submit">Submit Request</button>
+    </form>
+
+</body>
+</html>
