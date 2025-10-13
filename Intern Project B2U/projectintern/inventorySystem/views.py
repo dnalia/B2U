@@ -1,10 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
-from .models import User, TechRefresh, TechRefreshRequest
+from django.db.models import Q
+from django.http import HttpResponse
+from io import BytesIO
+import pandas as pd
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
+from .models import User, TechRefresh, TechRefreshRequest
 
 # ==============================
 # 🔐 LOGIN & LOGOUT
@@ -15,9 +21,8 @@ def login_view(request):
         password = request.POST.get("password")
 
         user = authenticate(request, username=username, password=password)
-        if user is not None:
+        if user:
             login(request, user)
-
             role = user.role.lower()
             if role == "teamlead":
                 return redirect("teamlead_dashboard")
@@ -28,7 +33,6 @@ def login_view(request):
                 logout(request)
         else:
             messages.error(request, "Invalid username or password.")
-
     return render(request, "login.html")
 
 
@@ -67,7 +71,6 @@ def add_tech_refresh(request):
             remarks=request.POST.get('remarks'),
         )
         return redirect('tech_refresh_list')
-
     return render(request, 'tech_refresh.html')
 
 
@@ -99,8 +102,8 @@ def engineer_dashboard(request):
     if request.user.role.lower() != 'systemengineer':
         return redirect('teamlead_dashboard')
 
-    requests = TechRefreshRequest.objects.filter(engineer=request.user).order_by('-submitted_at')
-    return render(request, 'engineer_dashboard.html', {'requests': requests})
+    requests_list = TechRefreshRequest.objects.filter(engineer=request.user).order_by('-submitted_at')
+    return render(request, 'engineer_dashboard.html', {'requests': requests_list})
 
 
 # ==============================
@@ -131,7 +134,6 @@ def manage_engineers(request):
 @login_required(login_url='login')
 def edit_engineer(request, engineer_id):
     engineer = get_object_or_404(User, id=engineer_id, role__iexact='SystemEngineer')
-
     if request.method == 'POST':
         engineer.username = request.POST.get('username')
         engineer.email = request.POST.get('email')
@@ -141,7 +143,6 @@ def edit_engineer(request, engineer_id):
         engineer.save()
         messages.success(request, 'Engineer updated successfully!')
         return redirect('manage_engineers')
-
     return render(request, 'edit_engineer.html', {'engineer': engineer})
 
 
@@ -178,8 +179,27 @@ def manage_requests(request):
         messages.error(request, "You do not have permission to access this page.")
         return redirect('login')
 
-    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
-    return render(request, 'manage_requests.html', {'requests': requests_list})
+    status_filter = request.GET.get('status')
+    search_query = request.GET.get('search')
+
+    requests_qs = TechRefreshRequest.objects.all().order_by('-submitted_at')
+
+    if search_query:
+        requests_qs = requests_qs.filter(
+            Q(engineer__username__icontains=search_query) |
+            Q(user__icontains=search_query) |
+            Q(location__icontains=search_query)
+        )
+
+    if status_filter and status_filter != 'all':
+        requests_qs = requests_qs.filter(status__iexact=status_filter)
+
+    context = {
+        'requests': requests_qs,
+        'status_filter': status_filter,
+        'search_query': search_query,
+    }
+    return render(request, 'manage_requests.html', context)
 
 
 @login_required(login_url='login')
@@ -200,35 +220,83 @@ def reject_request(request, request_id):
     return redirect('manage_requests')
 
 
-# ==============================
-# 📈 REPORTS / APPROVALS / RECORDS
-# ==============================
 @login_required(login_url='login')
-def approvals(request):
+def view_request_details(request, request_id):
     if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
-    return render(request, 'approvals.html')
+        messages.error(request, "You do not have permission to view this page.")
+        return redirect('login')
+
+    req = get_object_or_404(TechRefreshRequest, id=request_id)
+    return render(request, 'view_request_details.html', {'req': req})
 
 
-@login_required(login_url='login')
-def all_records(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
-
-    records = TechRefresh.objects.all()
-    return render(request, 'all_records.html', {'records': records})
-
-
+# ==============================
+# 📈 REPORTS & EXPORTS
+# ==============================
 @login_required(login_url='login')
 def reports(request):
     if request.user.role.lower() != 'teamlead':
         return redirect('engineer_dashboard')
 
-    total_tasks = TechRefresh.objects.count()
-    context = {
-        'total_tasks': total_tasks,
-        'completed': TechRefresh.objects.filter(status='Completed').count(),
-        'pending': TechRefresh.objects.filter(status='Pending').count(),
-        'rescheduled': TechRefresh.objects.filter(status='Rescheduled').count(),
-    }
+    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
+    context = {'requests': requests_list}
     return render(request, 'reports.html', context)
+
+
+@login_required(login_url='login')
+def export_requests_excel(request):
+    requests_list = TechRefreshRequest.objects.all().values(
+        'engineer__username', 'location', 'user', 'status', 'submitted_at'
+    )
+    df = pd.DataFrame(list(requests_list))
+    df.rename(columns={
+        'engineer__username': 'Engineer',
+        'location': 'Location',
+        'user': 'User',
+        'status': 'Status',
+        'submitted_at': 'Submitted At'
+    }, inplace=True)
+
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Requests')
+
+    buffer.seek(0)
+    response = HttpResponse(
+        buffer,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="requests_report.xlsx"'
+    return response
+
+
+@login_required(login_url='login')
+def export_requests_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="requests_report.pdf"'
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(200, height - 50, "Requests Report")
+
+    p.setFont("Helvetica", 11)
+    y = height - 100
+    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
+
+    for req in requests_list:
+        text = f"Engineer: {req.engineer.username}, Location: {req.location}, Status: {req.status}, Date: {req.submitted_at.strftime('%Y-%m-%d')}"
+        p.drawString(50, y, text)
+        y -= 20
+        if y < 50:
+            p.showPage()
+            y = height - 50
+            p.setFont("Helvetica", 11)
+
+    p.save()
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response

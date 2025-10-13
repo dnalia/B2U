@@ -1,4 +1,3 @@
-# urls.py
 from django.urls import path
 from . import views
 
@@ -25,14 +24,14 @@ urlpatterns = [
     path('dashboard/teamlead/manage-requests/', views.manage_requests, name='manage_requests'),
     path('dashboard/teamlead/request/<int:request_id>/approve/', views.approve_request, name='approve_request'),
     path('dashboard/teamlead/request/<int:request_id>/reject/', views.reject_request, name='reject_request'),
+    path('view-request/<int:request_id>/', views.view_request_details, name='view_request_details'),
+    path('request/<int:request_id>/details/', views.view_request_details, name='view_request_details'),
 
     # Engineer Requests
     path('dashboard/engineer/create-request/', views.create_request, name='create_request'),
 
-    # Team Lead pages
-    path('dashboard/teamlead/approvals/', views.approvals, name='approvals'),
-    path('dashboard/teamlead/all-records/', views.all_records, name='all_records'),
+    # Reports & Exports
     path('dashboard/teamlead/reports/', views.reports, name='reports'),
-
-    
+    path('dashboard/teamlead/export/excel/', views.export_requests_excel, name='export_requests_excel'),
+    path('dashboard/teamlead/export/pdf/', views.export_requests_pdf, name='export_requests_pdf'),
 ]

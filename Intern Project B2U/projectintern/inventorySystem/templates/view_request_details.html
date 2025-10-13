@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Request Details - Beyond2U</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fa;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background-color: #004aad;
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #003080;
+        }
+
+        /* Content */
+        .content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #004aad;
+            margin-bottom: 25px;
+        }
+
+        .details-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 700px;
+        }
+
+        .details-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .details-row:last-child {
+            border-bottom: none;
+        }
+
+        .details-row span {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #004aad;
+        }
+
+        .status-pending {
+            color: #f0ad4e;
+            font-weight: bold;
+        }
+        .status-approved {
+            color: #5cb85c;
+            font-weight: bold;
+        }
+        .status-rejected {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 10px 18px;
+            background-color: #004aad;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #003080;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
+    <a href="{% url 'manage_requests' %}">📥 Manage Requests</a>
+    <a href="{% url 'reports' %}">📊 Reports</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
+</div>
+
+<div class="content">
+    <h1>Request Details</h1>
+
+    <div class="details-card">
+        <div class="details-row">
+            <span class="label">Engineer:</span>
+            <span>{{ request_details.engineer.username }}</span>
+        </div>
+        <div class="details-row">
+            <span class="label">Location:</span>
+            <span>{{ request_details.location }}</span>
+        </div>
+        <div class="details-row">
+            <span class="label">User:</span>
+            <span>{{ request_details.user }}</span>
+        </div>
+        <div class="details-row">
+            <span class="label">Old Barcode:</span>
+            <span>{{ request_details.old_barcode }}</span>
+        </div>
+        <div class="details-row">
+            <span class="label">New Barcode:</span>
+            <span>{{ request_details.new_barcode }}</span>
+        </div>
+        <div class="details-row">
+            <span class="label">Status:</span>
+            <span class="status-{{ request_details.status|lower }}">{{ request_details.status }}</span>
+        </div>
+        <div class="details-row">
+            <span class="label">Remarks:</span>
+            <span>{{ request_details.remarks|default:"—" }}</span>
+        </div>
+        <div class="details-row">
+            <span class="label">Submitted At:</span>
+            <span>{{ request_details.submitted_at|date:"Y-m-d H:i" }}</span>
+        </div>
+        <div class="details-row">
+            <span class="label">Proof:</span>
+            {% if request_details.proof %}
+                <a href="{{ request_details.proof.url }}" target="_blank">View File</a>
+            {% else %}
+                <span>N/A</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <a href="{% url 'manage_requests' %}" class="back-btn">⬅ Back to Manage Requests</a>
+</div>
+
+</body>
+</html>

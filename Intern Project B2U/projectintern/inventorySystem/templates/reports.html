@@ -1,13 +1,155 @@
-{% extends 'base.html' %}
-{% block content %}
-<h2>📊 Reports Overview</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reports - Beyond2U</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #eef2f7;
+    }
 
-<table border="1" cellpadding="8">
-  <tr><th>Total Tasks</th><td>{{ total_tasks }}</td></tr>
-  <tr><th>Completed</th><td>{{ completed }}</td></tr>
-  <tr><th>Pending</th><td>{{ pending }}</td></tr>
-  <tr><th>Rescheduled</th><td>{{ rescheduled }}</td></tr>
-</table>
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 230px;
+      height: 100vh;
+      background: linear-gradient(180deg, #004aad, #00337a);
+      color: white;
+      padding: 25px 20px;
+      box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+    }
 
-<p><a href="{% url 'teamlead_dashboard' %}">⬅ Back to Dashboard</a></p>
-{% endblock %}
+    .sidebar h2 {
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      padding: 12px 15px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .sidebar a:hover {
+      background-color: #005ee0;
+      transform: translateX(5px);
+    }
+
+    .content {
+      margin-left: 250px;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #003c8f;
+      margin-bottom: 25px;
+    }
+
+    .export-buttons {
+      margin-bottom: 25px;
+    }
+
+    .btn {
+      background-color: #004aad;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.3s;
+      margin-right: 10px;
+    }
+
+    .btn:hover {
+      background-color: #003580;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: left;
+    }
+
+    th {
+      background-color: #004aad;
+      color: white;
+      text-transform: uppercase;
+    }
+
+    tr:hover {
+      background-color: #f6faff;
+    }
+
+    .status-pending { color: #f0ad4e; font-weight: bold; }
+    .status-approved { color: #28a745; font-weight: bold; }
+    .status-rejected { color: #dc3545; font-weight: bold; }
+
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
+    <a href="{% url 'manage_requests' %}">📥 Manage Requests</a>
+    <a href="{% url 'reports' %}">📊 Reports</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
+  </div>
+
+  <div class="content">
+    <h1>Reports</h1>
+
+    <div class="export-buttons">
+      <a href="{% url 'export_requests_excel' %}" class="btn">📗 Export to Excel</a>
+      <a href="{% url 'export_requests_pdf' %}" class="btn">📘 Export to PDF</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Engineer</th>
+          <th>Location</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Submitted At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ req.engineer.username }}</td>
+          <td>{{ req.location }}</td>
+          <td>{{ req.user }}</td>
+          <td class="status-{{ req.status|lower }}">{{ req.status }}</td>
+          <td>{{ req.submitted_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center;">No data available.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

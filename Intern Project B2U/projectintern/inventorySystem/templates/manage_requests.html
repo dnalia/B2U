@@ -1,167 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Manage Requests - Beyond2U</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f6fa;
-        }
+  <meta charset="UTF-8">
+  <title>Manage Requests - Beyond2U</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #eef2f7;
+      display: flex;
+    }
 
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 220px;
-            height: 100%;
-            background-color: #004aad;
-            color: white;
-            padding: 20px;
-        }
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 230px;
+      height: 100vh;
+      background: linear-gradient(180deg, #004aad, #00337a);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 25px 20px;
+      box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+    }
 
-        .sidebar h2 {
-            margin-bottom: 40px;
-            font-size: 22px;
-            text-align: center;
-        }
+    .sidebar h2 {
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 40px;
+      letter-spacing: 1px;
+    }
 
-        .sidebar a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 12px 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            transition: background 0.3s;
-        }
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      padding: 12px 15px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      transition: background 0.3s, transform 0.2s;
+      font-size: 15px;
+    }
 
-        .sidebar a:hover {
-            background-color: #003080;
-        }
+    .sidebar a:hover {
+      background-color: #005ee0;
+      transform: translateX(5px);
+    }
 
-        .content {
-            margin-left: 240px;
-            padding: 30px;
-        }
+    /* CONTENT AREA */
+    .content {
+      margin-left: 250px;
+      padding: 40px;
+      flex: 1;
+    }
 
-        h1 {
-            color: #004aad;
-            margin-bottom: 20px;
-        }
+    h1 {
+      color: #003c8f;
+      font-size: 28px;
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+    /* FILTER FORM */
+    form {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
 
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-        }
+    input[type="text"], select {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
 
-        th {
-            background-color: #004aad;
-            color: white;
-        }
+    input[type="text"]:focus, select:focus {
+      border-color: #004aad;
+    }
 
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
+    .btn-primary {
+      background-color: #004aad;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
 
-        .status-pending {
-            color: #f0ad4e;
-            font-weight: bold;
-        }
-        .status-approved {
-            color: #5cb85c;
-            font-weight: bold;
-        }
-        .status-rejected {
-            color: #d9534f;
-            font-weight: bold;
-        }
+    .btn-primary:hover {
+      background-color: #003580;
+    }
 
-        .btn {
-            padding: 6px 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            color: white;
-            font-size: 14px;
-            margin-right: 5px;
-        }
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
 
-        .approve-btn { background-color: #5cb85c; }
-        .reject-btn { background-color: #d9534f; }
-        .approve-btn:hover { background-color: #4cae4c; }
-        .reject-btn:hover { background-color: #c9302c; }
-    </style>
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 15px;
+    }
+
+    th {
+      background-color: #004aad;
+      color: white;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover {
+      background-color: #f6faff;
+    }
+
+    .status-pending { color: #f0ad4e; font-weight: bold; }
+    .status-approved { color: #28a745; font-weight: bold; }
+    .status-rejected { color: #dc3545; font-weight: bold; }
+
+    /* BUTTONS */
+    .btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: white;
+      font-size: 14px;
+      margin-right: 5px;
+      transition: background 0.3s;
+    }
+
+    .approve-btn { background-color: #28a745; }
+    .reject-btn { background-color: #dc3545; }
+    .view-btn { background-color: #0275d8; }
+
+    .approve-btn:hover { background-color: #218838; }
+    .reject-btn:hover { background-color: #c82333; }
+    .view-btn:hover { background-color: #0256a3; }
+
+    td a {
+      font-weight: 500;
+    }
+
+    td span {
+      color: #666;
+      font-style: italic;
+    }
+  </style>
 </head>
 <body>
 
-<div class="sidebar">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
     <h2>Beyond2U</h2>
     <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
     <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
     <a href="{% url 'manage_requests' %}">📥 Manage Requests</a>
     <a href="{% url 'reports' %}">📊 Reports</a>
     <a href="{% url 'logout' %}">🚪 Logout</a>
-</div>
+  </div>
 
-<div class="content">
+  <!-- MAIN CONTENT -->
+  <div class="content">
     <h1>Manage Requests</h1>
 
+    <form method="GET">
+      <input type="text" name="search" placeholder="🔍 Search by name or location" value="{{ search_query }}">
+      <select name="status">
+        <option value="all" {% if status_filter == 'all' or not status_filter %}selected{% endif %}>All</option>
+        <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+        <option value="Approved" {% if status_filter == 'Approved' %}selected{% endif %}>Approved</option>
+        <option value="Rejected" {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
+      </select>
+      <button type="submit" class="btn-primary">Filter</button>
+    </form>
+
     <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Engineer</th>
-                <th>Location</th>
-                <th>User</th>
-                <th>Status</th>
-                <th>Submitted At</th>
-                <th>Proof</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for req in requests %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ req.engineer.username }}</td>
-                <td>{{ req.location }}</td>
-                <td>{{ req.user }}</td>
-                <td class="status-{{ req.status|lower }}">{{ req.status }}</td>
-                <td>{{ req.submitted_at|date:"Y-m-d H:i" }}</td>
-                <td>
-                    {% if req.proof %}
-                    <a href="{{ req.proof.url }}" target="_blank">View</a>
-                    {% else %}
-                    N/A
-                    {% endif %}
-                </td>
-                <td>
-                    {% if req.status == "Pending" %}
-                        <a href="{% url 'approve_request' req.id %}" class="btn approve-btn">Approve</a>
-                        <a href="{% url 'reject_request' req.id %}" class="btn reject-btn">Reject</a>
-                    {% else %}
-                        <span>—</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="8" style="text-align:center;">No requests found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Engineer</th>
+          <th>Location</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Submitted At</th>
+          <th>Proof</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ req.engineer.username }}</td>
+          <td>{{ req.location }}</td>
+          <td>{{ req.user }}</td>
+          <td class="status-{{ req.status|lower }}">{{ req.status }}</td>
+          <td>{{ req.submitted_at|date:"Y-m-d H:i" }}</td>
+          <td>
+            {% if req.proof %}
+              <a href="{{ req.proof.url }}" target="_blank">View</a>
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'view_request_details' req.id %}" class="btn view-btn">View</a>
+            {% if req.status == "Pending" %}
+              <a href="{% url 'approve_request' req.id %}" class="btn approve-btn">Approve</a>
+              <a href="{% url 'reject_request' req.id %}" class="btn reject-btn">Reject</a>
+            {% else %}
+              <span>—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center;">No requests found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
-</div>
+  </div>
 
 </body>
 </html>
