@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System Engineer Dashboard - Beyond2U</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fa;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background-color: #004aad;
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #003080;
+        }
+
+        .content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #004aad;
+            margin-bottom: 30px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .card h3 {
+            color: #004aad;
+            font-size: 22px;
+        }
+
+        .card p {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .quick-links {
+            margin-top: 40px;
+        }
+
+        .quick-links a {
+            display: inline-block;
+            background-color: #004aad;
+            color: white;
+            padding: 12px 20px;
+            margin-right: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .quick-links a:hover {
+            background-color: #003080;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Beyond2U</h2>
+        <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
+        <a href="{% url 'inventory_list' %}">📦 View Inventory</a>
+        <a href="{% url 'update_status' %}">🛠 Update Item Status</a>
+        <a href="{% url 'maintenance_logs' %}">📝 Maintenance Logs</a>
+        <a href="{% url 'assigned_items' %}">🔍 Assigned Items</a>
+        <a href="{% url 'send_feedback' %}">💬 Feedback / Report Issue</a>
+        <a href="{% url 'logout' %}">🚪 Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <h1>Welcome, {{ request.user.username }} 👋</h1>
+
+        <!-- Dashboard Cards -->
+        <div class="cards">
+            <div class="card">
+                <h3>Total Assigned Items</h3>
+                <p>{{ assigned_items_count }}</p>
+            </div>
+            <div class="card">
+                <h3>Items In Use</h3>
+                <p>{{ in_use_count }}</p>
+            </div>
+            <div class="card">
+                <h3>Items Returned</h3>
+                <p>{{ returned_count }}</p>
+            </div>
+            <div class="card">
+                <h3>Damaged Items</h3>
+                <p>{{ damaged_count }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="quick-links">
+            <a href="{% url 'maintenance_logs' %}">+ Submit Maintenance Log</a>
+            <a href="{% url 'send_feedback' %}">Send Feedback</a>
+        </div>
+    </div>
+
+</body>
+</html>

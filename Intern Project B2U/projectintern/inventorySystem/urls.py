@@ -34,4 +34,24 @@ urlpatterns = [
     path('dashboard/teamlead/reports/', views.reports, name='reports'),
     path('dashboard/teamlead/export/excel/', views.export_requests_excel, name='export_requests_excel'),
     path('dashboard/teamlead/export/pdf/', views.export_requests_pdf, name='export_requests_pdf'),
+
+    
+    # SYSTEM ENGINEER
+    path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
+
+    # INVENTORY
+    path('inventory/list/', views.inventory_list, name='inventory_list'),
+    path('inventory/update-status/', views.update_status, name='update_status'),
+
+    # MAINTENANCE LOGS
+    path('inventory/maintenance-logs/', views.maintenance_logs, name='maintenance_logs'),
+
+    # ASSIGNED ITEMS
+    path('inventory/assigned-items/', views.assigned_items, name='assigned_items'),
+
+    # FEEDBACK
+    path('inventory/send-feedback/', views.send_feedback, name='send_feedback'),
 ]
+
+
+

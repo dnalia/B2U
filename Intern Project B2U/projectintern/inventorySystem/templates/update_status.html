@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Inventory Status</title>
+</head>
+<body>
+    <h1>Update Inventory Status</h1>
+
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Item Name</th>
+            <th>Current Status</th>
+            <th>Action</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.status }}</td>
+            <td>
+                <select>
+                    <option>In Use</option>
+                    <option>Returned</option>
+                    <option>Damaged</option>
+                </select>
+                <button>Update</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

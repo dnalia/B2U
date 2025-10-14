@@ -300,3 +300,64 @@ def export_requests_pdf(request):
     buffer.close()
     response.write(pdf)
     return response
+
+# 🧑‍🔧 System Engineer Dashboard
+@login_required
+def systemengineer_dashboard(request):
+    context = {
+        'assigned_items_count': 8,
+        'in_use_count': 3,
+        'returned_count': 2,
+        'damaged_count': 1,
+    }
+    return render(request, 'systemengineer_dashboard.html', context)
+
+
+# 📥 View Inventory List
+@login_required
+def inventory_list(request):
+    items = [
+        {'name': 'Laptop Dell', 'status': 'Available'},
+        {'name': 'Monitor Acer', 'status': 'In Use'},
+        {'name': 'Keyboard Logitech', 'status': 'Returned'},
+    ]
+    return render(request, 'inventory_list.html', {'items': items})
+
+
+# 🛠 Update Inventory Status
+@login_required
+def update_status(request):
+    items = [
+        {'name': 'Laptop A', 'status': 'In Use'},
+        {'name': 'Printer B', 'status': 'Returned'},
+        {'name': 'Router C', 'status': 'Damaged'},
+    ]
+    return render(request, 'update_status.html', {'items': items})
+
+
+# 📝 Submit Maintenance Logs
+@login_required
+def maintenance_logs(request):
+    logs = [
+        {'item': 'Monitor', 'issue': 'Display flickering', 'date': '2025-10-10'},
+        {'item': 'Keyboard', 'issue': 'Key stuck', 'date': '2025-10-12'},
+    ]
+    return render(request, 'maintenance_logs.html', {'logs': logs})
+
+
+# 🔍 Track Assigned Items
+@login_required
+def assigned_items(request):
+    items = [
+        {'name': 'Laptop Dell', 'status': 'In Use'},
+        {'name': 'Mouse HP', 'status': 'Returned'},
+    ]
+    return render(request, 'assigned_items.html', {'items': items})
+
+
+# 💬 Send Feedback
+@login_required
+def send_feedback(request):
+    return render(request, 'send_feedback.html')
+
+
