@@ -9,8 +9,8 @@ from io import BytesIO
 import pandas as pd
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-
-from .models import User, TechRefresh, TechRefreshRequest
+from django.http import FileResponse
+from .models import User, TechRefresh, TechRefreshRequest,Inventory,Request,Notification
 
 
 # ==============================
@@ -73,19 +73,163 @@ def teamlead_dashboard(request):
     return render(request, 'teamlead_dashboard.html', context)
 
 
+# ----------------------------
+# 🧑‍🔧 System Engineer Dashboard
+# ----------------------------
 @login_required(login_url='login')
 def systemengineer_dashboard(request):
-    if request.user.role != 'SystemEngineer':
-        messages.error(request, "Access denied. You are not a System Engineer.")
-        return redirect('login')
+    user = request.user
+    my_requests = TechRefreshRequest.objects.filter(engineer=user)
+    assigned_items = Inventory.objects.filter(added_by=user)  # boleh tukar ikut logic assigned items
 
     context = {
-        'assigned_items_count': 8,
-        'in_use_count': 3,
-        'returned_count': 2,
-        'damaged_count': 1,
+        'pending_count': my_requests.filter(status='Pending').count(),
+        'approved_count': my_requests.filter(status='Approved').count(),
+        'rejected_count': my_requests.filter(status='Rejected').count(),
+        'my_requests': my_requests,
+        'assigned_items': assigned_items
     }
     return render(request, 'systemengineer_dashboard.html', context)
+
+
+# ----------------------------
+# 📄 Create Task
+# ----------------------------
+@login_required(login_url='login')
+def create_task(request):
+    # Ambil semua Team Lead untuk pilih approver
+    teamleads = User.objects.filter(role='TeamLead')
+    
+    if request.method == 'POST':
+        task_type = request.POST.get('task_type')
+        location = request.POST.get('location')
+        user_name = request.POST.get('user_name')
+        old_barcode = request.POST.get('old_barcode')
+        new_barcode = request.POST.get('new_barcode')
+        old_serial = request.POST.get('old_serial')
+        new_serial = request.POST.get('new_serial')
+        old_ip = request.POST.get('old_ip')
+        new_ip = request.POST.get('new_ip')
+        new_mac = request.POST.get('new_mac')
+        remarks = request.POST.get('remarks')
+        approver_id = request.POST.get('assigned_approver')
+        proof = request.FILES.get('proof')
+
+        assigned_approver = None
+        if approver_id:
+            assigned_approver = User.objects.get(id=approver_id)
+
+        # Buat Request baru
+        Request.objects.create(
+            engineer=request.user,
+            type=task_type,
+            location=location,
+            user=user_name,
+            old_barcode=old_barcode,
+            new_barcode=new_barcode,
+            old_serial=old_serial,
+            new_serial=new_serial,
+            old_ip=old_ip,
+            new_ip=new_ip,
+            new_mac=new_mac,
+            remarks=remarks,
+            proof=proof,
+            assigned_approver=assigned_approver
+        )
+
+        messages.success(request, "Task submitted successfully!")
+        return redirect('systemengineer_dashboard')
+
+    context = {
+        'teamleads': teamleads
+    }
+    return render(request, 'create_task.html', context)
+
+# ----------------------------
+# 📝 My Submissions
+# ----------------------------
+@login_required
+def my_submissions(request):
+    submissions = Request.objects.filter(engineer=request.user).order_by('-created_at')
+    return render(request, 'my_submissions.html', {'submissions': submissions})
+
+@login_required
+def cancel_task(request, task_id):
+    task = get_object_or_404(Request, id=task_id, engineer=request.user)
+    if task.status == "Pending":
+        task.status = "Cancelled"
+        task.save()
+    return redirect('my_submissions')
+
+@login_required
+def edit_task(request, task_id):
+    task = get_object_or_404(Request, id=task_id, engineer=request.user)
+    if request.method == 'POST':
+        task.location = request.POST.get('location')
+        task.user = request.POST.get('user')
+        task.new_barcode = request.POST.get('new_barcode')
+        task.new_serial = request.POST.get('new_serial')
+        task.save()
+        return redirect('my_submissions')
+    return render(request, 'edit_task.html', {'task': task})
+
+@login_required
+def download_task_pdf(request, task_id):
+    task = get_object_or_404(Request, id=task_id, engineer=request.user)
+
+    if task.status != 'Approved':
+        messages.error(request, "You can only download approved tasks.")
+        return redirect('my_submissions')
+
+    # Generate PDF guna reportlab
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(200, height - 50, "Task Report")
+
+    p.setFont("Helvetica", 12)
+    y = height - 100
+    details = [
+        f"Engineer: {task.engineer.username}",
+        f"Task Type: {task.type}",
+        f"Status: {task.status}",
+        f"Location: {task.location}",
+        f"Old Barcode: {task.old_barcode}",
+        f"New Barcode: {task.new_barcode}",
+        f"Old Serial: {task.old_serial}",
+        f"New Serial: {task.new_serial}",
+        f"Old IP: {task.old_ip}",
+        f"New IP: {task.new_ip}",
+        f"Remarks: {task.remarks or '-'}",
+        f"Date Submitted: {task.created_at.strftime('%Y-%m-%d %H:%M')}",
+    ]
+
+    for line in details:
+        p.drawString(80, y, line)
+        y -= 20
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"task_{task.id}.pdf")
+
+# ----------------------------
+# 🛠 Update Inventory Status
+# ----------------------------
+@login_required(login_url='login')
+def update_status(request, pk):
+    item = get_object_or_404(Inventory, pk=pk)
+    if request.method == 'POST':
+        item.condition = request.POST.get('condition')
+        item.save()
+        messages.success(request, f'Status for {item.item_name} updated!')
+        return redirect('systemengineer_dashboard')
+    return render(request, 'update_status.html', {'item': item})
+
+
+
 
 
 
@@ -316,30 +460,7 @@ def export_requests_pdf(request):
     response.write(pdf)
     return response
 
-
-# 📥 View Inventory List
-@login_required
-def inventory_list(request):
-    items = [
-        {'name': 'Laptop Dell', 'status': 'Available'},
-        {'name': 'Monitor Acer', 'status': 'In Use'},
-        {'name': 'Keyboard Logitech', 'status': 'Returned'},
-    ]
-    return render(request, 'inventory_list.html', {'items': items})
-
-
-# 🛠 Update Inventory Status
-@login_required
-def update_status(request):
-    items = [
-        {'name': 'Laptop A', 'status': 'In Use'},
-        {'name': 'Printer B', 'status': 'Returned'},
-        {'name': 'Router C', 'status': 'Damaged'},
-    ]
-    return render(request, 'update_status.html', {'items': items})
-
-
-# 📝 Submit Maintenance Logs
+#MAINTENANCE LOGS
 @login_required
 def maintenance_logs(request):
     logs = [
@@ -348,10 +469,10 @@ def maintenance_logs(request):
     ]
     return render(request, 'maintenance_logs.html', {'logs': logs})
 
-
-# 🔍 Track Assigned Items
-@login_required
+#ASSIGNED ITEMS
+@login_required(login_url='login')
 def assigned_items(request):
+    # Mock data untuk test
     items = [
         {'name': 'Laptop Dell', 'status': 'In Use'},
         {'name': 'Mouse HP', 'status': 'Returned'},
@@ -359,7 +480,57 @@ def assigned_items(request):
     return render(request, 'assigned_items.html', {'items': items})
 
 
-# 💬 Send Feedback
-@login_required
+#send feedback
+@login_required(login_url='login')
 def send_feedback(request):
+    if request.method == 'POST':
+        message = request.POST.get('message')
+        # Simpan mesej atau hantar email / CloudDB dsb ikut keperluan
+        # Buat sementara kita cuma bagi success message
+        messages.success(request, "Feedback submitted successfully!")
+        return redirect('systemengineer_dashboard')
+    
     return render(request, 'send_feedback.html')
+
+
+# ----------------------------
+# 🔔 Notifications
+# ----------------------------
+
+def approve_request(request, request_id):
+    req = Request.objects.get(id=request_id)
+    req.status = 'Approved'
+    req.save()
+
+    # Hantar notifikasi kepada System Engineer
+    Notification.objects.create(
+        user=req.engineer,  # System Engineer yang buat request tu
+        message=f"Your request '{req.id}' has been approved by Team Lead."
+    )
+
+    return redirect('manage_requests')
+
+
+def reject_request(request, request_id):
+    req = Request.objects.get(id=request_id)
+    req.status = 'Rejected'
+    req.save()
+
+    # Contoh kalau Team Lead tambah komen
+    comment = request.POST.get('comment', 'No comments provided.')
+
+    # Hantar notifikasi kepada System Engineer
+    Notification.objects.create(
+        user=req.engineer,
+        message=f"Your request '{req.id}' has been rejected by Team Lead. Comment: {comment}"
+    )
+
+    return redirect('manage_requests')
+
+def notifications(request):
+    user_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+
+    # Tandakan semua sebagai "read" bila dibuka
+    user_notifications.update(is_read=True)
+
+    return render(request, 'inventorySystem/notifications.html', {'notifications': user_notifications})

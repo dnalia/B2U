@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Submissions - Beyond2U</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fa;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background-color: #004aad;
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #003080;
+        }
+
+        .content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #004aad;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #004aad;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f0f4ff;
+        }
+
+        .status-pending {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .status-approved {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .status-rejected {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        a.btn {
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-view { background-color: #004aad; }
+        .btn-view:hover { background-color: #003080; }
+
+        .btn-edit { background-color: #2196f3; }
+        .btn-edit:hover { background-color: #1976d2; }
+
+        .btn-cancel { background-color: #f44336; }
+        .btn-cancel:hover { background-color: #d32f2f; }
+
+        .btn-download { background-color: #4caf50; }
+        .btn-download:hover { background-color: #388e3c; }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Beyond2U</h2>
+        <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
+        <a href="{% url 'create_task' %}">➕ Create Task</a>
+        <a href="{% url 'my_submissions' %}">📄 My Submissions</a>
+        <a href="{% url 'notifications' %}">🔔 Notifications</a>
+        <a href="{% url 'send_feedback' %}">💬 Feedback</a>
+        <a href="{% url 'logout' %}">🚪 Logout</a>
+    </div>
+
+    <div class="content">
+        <h1>📄 My Submissions</h1>
+
+        {% if submissions %}
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Task Type</th>
+                <th>Location</th>
+                <th>User</th>
+                <th>Status</th>
+                <th>Submitted At</th>
+                <th>Actions</th>
+            </tr>
+
+            {% for task in submissions %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ task.type }}</td>
+                <td>{{ task.location }}</td>
+                <td>{{ task.user }}</td>
+                <td>
+                    {% if task.status == "Pending" %}
+                        <span class="status-pending">{{ task.status }}</span>
+                    {% elif task.status == "Approved" %}
+                        <span class="status-approved">{{ task.status }}</span>
+                    {% else %}
+                        <span class="status-rejected">{{ task.status }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ task.created_at|date:"d M Y, h:i A" }}</td>
+                <td>
+                    <a href="{% url 'task_detail' task.id %}" class="btn btn-view">View</a>
+
+                    {% if task.status == "Pending" %}
+                        <a href="{% url 'edit_task' task.id %}" class="btn btn-edit">Edit</a>
+                        <a href="{% url 'cancel_task' task.id %}" class="btn btn-cancel"
+                           onclick="return confirm('Are you sure you want to cancel this task?');">
+                           Cancel
+                        </a>
+                    {% elif task.status == "Approved" %}
+                        <a href="{% url 'download_task_pdf' task.id %}" class="btn btn-download">Download PDF</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+            <p>No submissions yet.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>

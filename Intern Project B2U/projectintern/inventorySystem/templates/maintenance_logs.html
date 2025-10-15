@@ -1,0 +1,16 @@
+<h1>Maintenance Logs</h1>
+<table border="1">
+    <tr>
+        <th>Item</th>
+        <th>Issue</th>
+        <th>Date</th>
+    </tr>
+    {% for log in logs %}
+    <tr>
+        <td>{{ log.item }}</td>
+        <td>{{ log.issue }}</td>
+        <td>{{ log.date }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<a href="{% url 'systemengineer_dashboard' %}">Back to Dashboard</a>

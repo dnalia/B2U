@@ -35,9 +35,26 @@ urlpatterns = [
     path('dashboard/teamlead/export/excel/', views.export_requests_excel, name='export_requests_excel'),
     path('dashboard/teamlead/export/pdf/', views.export_requests_pdf, name='export_requests_pdf'),
 
-    # INVENTORY
-    path('inventory/list/', views.inventory_list, name='inventory_list'),
-    path('inventory/update-status/', views.update_status, name='update_status'),
+    # Dashboard
+    path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
+
+    # Create Task
+    path('dashboard/systemengineer/create_task/', views.create_task, name='create_task'),
+
+    # My Submissions
+ # System Engineer Dashboard & Tasks
+path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
+path('dashboard/systemengineer/create_task/', views.create_task, name='create_task'),
+path('dashboard/systemengineer/my_submissions/', views.my_submissions, name='my_submissions'),
+path('dashboard/systemengineer/notifications/', views.notifications, name='notifications'),
+path('dashboard/systemengineer/update_status/<int:pk>/', views.update_status, name='update_status'),
+
+    # Update Inventory Status
+    path('dashboard/systemengineer/update_status/<int:pk>/', views.update_status, name='update_status'),
+
+    # Notifications
+    path('dashboard/systemengineer/notifications/', views.notifications, name='notifications'),
+
 
     # MAINTENANCE LOGS
     path('inventory/maintenance-logs/', views.maintenance_logs, name='maintenance_logs'),

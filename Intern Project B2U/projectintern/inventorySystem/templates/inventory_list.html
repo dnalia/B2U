@@ -1,15 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Inventory List</title>
+  <meta charset="UTF-8">
+  <title>Inventory List</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f6ff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    .navbar {
+      background-color: #004aad;
+      color: white;
+      padding: 15px;
+    }
+    .navbar a {
+      background: #fff;
+      color: #004aad;
+      padding: 8px 14px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .navbar a:hover {
+      background-color: #e3eaff;
+    }
+    table {
+      width: 85%;
+      margin: 30px auto;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #004aad;
+      color: white;
+    }
+    td a {
+      color: #004aad;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    td a:hover {
+      text-decoration: underline;
+    }
+    .no-item {
+      margin-top: 30px;
+      color: #666;
+    }
+  </style>
 </head>
 <body>
-    <h1>Inventory List</h1>
-    <ul>
-        {% for item in items %}
-        <li>{{ item.name }} - {{ item.status }}</li>
-        {% endfor %}
-    </ul>
+  <div class="navbar">
+    <h2>📦 Inventory Management</h2>
+    <a href="{% url 'add_inventory' %}">+ Add Item</a>
+  </div>
+
+  {% if items %}
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Category</th>
+      <th>Quantity</th>
+      <th>Condition</th>
+      <th>Location</th>
+      <th>Actions</th>
+    </tr>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.item_name }}</td>
+      <td>{{ item.category }}</td>
+      <td>{{ item.quantity }}</td>
+      <td>{{ item.condition }}</td>
+      <td>{{ item.location }}</td>
+      <td>
+        <a href="{% url 'edit_inventory' item.id %}">Edit</a> |
+        <a href="{% url 'delete_inventory' item.id %}" onclick="return confirm('Are you sure to delete this item?')">Delete</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+    <p class="no-item">No inventory items found.</p>
+  {% endif %}
 </body>
 </html>
