@@ -12,6 +12,7 @@ from reportlab.pdfgen import canvas
 
 from .models import User, TechRefresh, TechRefreshRequest
 
+
 # ==============================
 # 🔐 LOGIN & LOGOUT
 # ==============================
@@ -19,21 +20,27 @@ def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+        selected_role = request.POST.get("role")
 
         user = authenticate(request, username=username, password=password)
+
         if user:
-            login(request, user)
-            role = user.role.lower()
-            if role == "teamlead":
-                return redirect("teamlead_dashboard")
-            elif role == "systemengineer":
-                return redirect("engineer_dashboard")
+            if user.role == selected_role:
+                login(request, user)
+                if user.role == "TeamLead":
+                    return redirect("teamlead_dashboard")
+                elif user.role == "SystemEngineer":
+                    return redirect("systemengineer_dashboard")
             else:
-                messages.error(request, "Invalid role assigned.")
+                messages.error(request, "Role does not match your account.")
                 logout(request)
+                return redirect("login")  # ✅ pastikan ni
         else:
             messages.error(request, "Invalid username or password.")
+            return redirect("login")  # ✅ pastikan ni juga
+
     return render(request, "login.html")
+
 
 
 def logout_view(request):
@@ -46,6 +53,40 @@ def logout_view(request):
 # ==============================
 def homepage(request):
     return render(request, "homepage.html")
+
+
+# ==============================
+# 📊 DASHBOARDS
+# ==============================
+@login_required(login_url='login')
+def teamlead_dashboard(request):
+    if request.user.role != 'TeamLead':
+        messages.error(request, "Access denied. You are not a Team Lead.")
+        return redirect('login')
+
+    context = {
+        'total_engineers': User.objects.filter(role='SystemEngineer').count(),
+        'total_tasks': TechRefresh.objects.count(),
+        'pending_tasks': TechRefresh.objects.filter(status='Pending').count(),
+        'completed_tasks': TechRefresh.objects.filter(status='Completed').count(),
+    }
+    return render(request, 'teamlead_dashboard.html', context)
+
+
+@login_required(login_url='login')
+def systemengineer_dashboard(request):
+    if request.user.role != 'SystemEngineer':
+        messages.error(request, "Access denied. You are not a System Engineer.")
+        return redirect('login')
+
+    context = {
+        'assigned_items_count': 8,
+        'in_use_count': 3,
+        'returned_count': 2,
+        'damaged_count': 1,
+    }
+    return render(request, 'systemengineer_dashboard.html', context)
+
 
 
 # ==============================
@@ -81,38 +122,12 @@ def tech_refresh_list(request):
 
 
 # ==============================
-# 📊 DASHBOARDS
-# ==============================
-@login_required(login_url='login')
-def teamlead_dashboard(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
-
-    context = {
-        'total_engineers': User.objects.filter(role__iexact='SystemEngineer').count(),
-        'total_tasks': TechRefresh.objects.count(),
-        'pending_tasks': TechRefresh.objects.filter(status__iexact='Pending').count(),
-        'completed_tasks': TechRefresh.objects.filter(status__iexact='Completed').count(),
-    }
-    return render(request, 'teamlead_dashboard.html', context)
-
-
-@login_required(login_url='login')
-def engineer_dashboard(request):
-    if request.user.role.lower() != 'systemengineer':
-        return redirect('teamlead_dashboard')
-
-    requests_list = TechRefreshRequest.objects.filter(engineer=request.user).order_by('-submitted_at')
-    return render(request, 'engineer_dashboard.html', {'requests': requests_list})
-
-
-# ==============================
 # 👥 MANAGE ENGINEERS
 # ==============================
 @login_required(login_url='login')
 def manage_engineers(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
+    if request.user.role != 'TeamLead':
+        return redirect('systemengineer_dashboard')
 
     if request.method == "POST":
         username = request.POST.get("username")
@@ -127,13 +142,13 @@ def manage_engineers(request):
         )
         return redirect('manage_engineers')
 
-    engineers = User.objects.filter(role__iexact='SystemEngineer')
+    engineers = User.objects.filter(role='SystemEngineer')
     return render(request, "manage_engineers.html", {"engineers": engineers})
 
 
 @login_required(login_url='login')
 def edit_engineer(request, engineer_id):
-    engineer = get_object_or_404(User, id=engineer_id, role__iexact='SystemEngineer')
+    engineer = get_object_or_404(User, id=engineer_id, role='SystemEngineer')
     if request.method == 'POST':
         engineer.username = request.POST.get('username')
         engineer.email = request.POST.get('email')
@@ -148,7 +163,7 @@ def edit_engineer(request, engineer_id):
 
 @login_required(login_url='login')
 def delete_engineer(request, engineer_id):
-    engineer = get_object_or_404(User, id=engineer_id, role__iexact='SystemEngineer')
+    engineer = get_object_or_404(User, id=engineer_id, role='SystemEngineer')
     engineer.delete()
     return redirect('manage_engineers')
 
@@ -169,13 +184,13 @@ def create_request(request):
             remarks=request.POST.get('remarks'),
             proof=request.FILES.get('proof')
         )
-        return redirect('engineer_dashboard')
+        return redirect('systemengineer_dashboard')
     return render(request, 'create_request.html')
 
 
 @login_required(login_url='login')
 def manage_requests(request):
-    if request.user.role.lower() != 'teamlead':
+    if request.user.role != 'TeamLead':
         messages.error(request, "You do not have permission to access this page.")
         return redirect('login')
 
@@ -222,7 +237,7 @@ def reject_request(request, request_id):
 
 @login_required(login_url='login')
 def view_request_details(request, request_id):
-    if request.user.role.lower() != 'teamlead':
+    if request.user.role != 'TeamLead':
         messages.error(request, "You do not have permission to view this page.")
         return redirect('login')
 
@@ -235,8 +250,8 @@ def view_request_details(request, request_id):
 # ==============================
 @login_required(login_url='login')
 def reports(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
+    if request.user.role != 'TeamLead':
+        return redirect('systemengineer_dashboard')
 
     requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
     context = {'requests': requests_list}
@@ -301,17 +316,6 @@ def export_requests_pdf(request):
     response.write(pdf)
     return response
 
-# 🧑‍🔧 System Engineer Dashboard
-@login_required
-def systemengineer_dashboard(request):
-    context = {
-        'assigned_items_count': 8,
-        'in_use_count': 3,
-        'returned_count': 2,
-        'damaged_count': 1,
-    }
-    return render(request, 'systemengineer_dashboard.html', context)
-
 
 # 📥 View Inventory List
 @login_required
@@ -359,5 +363,3 @@ def assigned_items(request):
 @login_required
 def send_feedback(request):
     return render(request, 'send_feedback.html')
-
-

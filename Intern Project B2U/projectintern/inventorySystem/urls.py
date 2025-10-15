@@ -9,7 +9,7 @@ urlpatterns = [
 
     # Dashboards
     path('dashboard/teamlead/', views.teamlead_dashboard, name='teamlead_dashboard'),
-    path('dashboard/engineer/', views.engineer_dashboard, name='engineer_dashboard'),
+    path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
 
     # Tech Refresh
     path('tech-refresh/add/', views.add_tech_refresh, name='add_tech_refresh'),
@@ -28,16 +28,12 @@ urlpatterns = [
     path('request/<int:request_id>/details/', views.view_request_details, name='view_request_details'),
 
     # Engineer Requests
-    path('dashboard/engineer/create-request/', views.create_request, name='create_request'),
+    path('dashboard/systemengineer/create-request/', views.create_request, name='create_request'),
 
     # Reports & Exports
     path('dashboard/teamlead/reports/', views.reports, name='reports'),
     path('dashboard/teamlead/export/excel/', views.export_requests_excel, name='export_requests_excel'),
     path('dashboard/teamlead/export/pdf/', views.export_requests_pdf, name='export_requests_pdf'),
-
-    
-    # SYSTEM ENGINEER
-    path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
 
     # INVENTORY
     path('inventory/list/', views.inventory_list, name='inventory_list'),
@@ -52,6 +48,3 @@ urlpatterns = [
     # FEEDBACK
     path('inventory/send-feedback/', views.send_feedback, name='send_feedback'),
 ]
-
-
-
