@@ -19,78 +19,97 @@
         button:hover { background-color: #003080; }
         a.back-link { display: inline-block; margin-top: 15px; color: #004aad; text-decoration: none; font-weight: bold; transition: 0.3s; }
         a.back-link:hover { color: #003080; }
+        .task-header { margin-bottom: 20px; font-size: 18px; font-weight: bold; color: #004aad; white-space: pre-line; }
     </style>
+    <script>
+        function updateHeader() {
+            const select = document.getElementById('task_type');
+            const header = document.getElementById('form_header');
+            const type = select.value;
+            let text = '';
+            if(type === 'Tech Refresh') text = 'Tech Refresh Replacements\n(Tech Refresh)';
+            else if(type === 'Asset Refresh') text = 'Asset Refresh Replacements\n(Asset Refresh)';
+            else if(type === 'Parts Upgrade') text = 'Parts Upgrade Replacements\n(Parts Upgrade)';
+            header.innerText = text;
+        }
+    </script>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>Beyond2U</h2>
-        <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
-        <a href="{% url 'create_task' %}">➕ Create Task</a>
-        <a href="{% url 'my_submissions' %}">📄 My Submissions</a>
-        <a href="{% url 'notifications' %}">🔔 Notifications</a>
-        <a href="{% url 'send_feedback' %}">💬 Feedback</a>
-        <a href="{% url 'logout' %}">🚪 Logout</a>
-    </div>
+<div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'create_task' %}">➕ Create Task</a>
+    <a href="{% url 'my_submissions' %}">📄 My Submissions</a>
+    <a href="{% url 'notifications' %}">🔔 Notifications</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
+</div>
 
-    <div class="content">
-        <h1>Create New Task</h1>
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
+<div class="content">
+    <h1>Create New Task</h1>
 
-            <label>Task Type:</label>
-            <select name="task_type" required>
-                <option value="Tag Refresh">Laptop (Tag Refresh)</option>
-                <option value="Asset Refresh">PC (Asset Refresh)</option>
-                <option value="Tech Refresh">Upgrade (Tech Refresh)</option>
-            </select>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-            <label>Location:</label>
-            <input type="text" name="location" required>
+        <label>Task Type:</label>
+        <select name="task_type" id="task_type" onchange="updateHeader()" required>
+            <option value="Tech Refresh">Tech Refresh</option>
+            <option value="Asset Refresh">Asset Refresh</option>
+            <option value="Parts Upgrade">Parts Upgrade</option>
+        </select>
 
-            <label>User Name:</label>
-            <input type="text" name="user_name" required>
+        <div class="task-header" id="form_header">
+Tech Refresh Replacements
+(Tech Refresh)
+        </div>
 
-            <label>Old Barcode:</label>
-            <input type="text" name="old_barcode">
+        <label>Engineer Name:</label>
+        <input type="text" name="engineer_name" placeholder="Enter engineer name" required>
 
-            <label>New Barcode:</label>
-            <input type="text" name="new_barcode">
+        <label>User Name:</label>
+        <input type="text" name="user_name" placeholder="Enter user name" required>
 
-            <label>Old Serial:</label>
-            <input type="text" name="old_serial">
+        <label>Location:</label>
+        <input type="text" name="location" placeholder="Enter location" required>
 
-            <label>New Serial:</label>
-            <input type="text" name="new_serial">
+        <label>Old Hostname:</label>
+        <input type="text" name="old_hostname" placeholder="Enter old hostname">
 
-            <label>Old IP:</label>
-            <input type="text" name="old_ip">
+        <label>New Hostname:</label>
+        <input type="text" name="new_hostname" placeholder="Enter new hostname">
 
-            <label>New IP:</label>
-            <input type="text" name="new_ip">
+        <label>Old Serial Number:</label>
+        <input type="text" name="old_serial_number" placeholder="Enter old serial number">
 
-            <label>New MAC:</label>
-            <input type="text" name="new_mac">
+        <label>New Serial Number:</label>
+        <input type="text" name="new_serial_number" placeholder="Enter new serial number">
 
-            <label>Proof (Photo or PDF):</label>
-            <input type="file" name="proof">
+        <label>Status:</label>
+        <input type="text" name="status" placeholder="Enter status (e.g., Done)">
 
-            <label>Assign Approver (Team Lead):</label>
-            <select name="assigned_approver" required>
-                <option value="">--Select Team Lead--</option>
-                {% for lead in teamleads %}
-                <option value="{{ lead.id }}">{{ lead.username }}</option>
-                {% endfor %}
-            </select>
+        <label>Date (If rescheduled):</label>
+        <input type="text" name="date_if_rescheduled" placeholder="Enter date if rescheduled">
 
-            <label>Remarks:</label>
-            <textarea name="remarks" rows="3"></textarea>
+        <label>Format Status:</label>
+        <input type="text" name="format_status" placeholder="Enter format status">
 
-            <button type="submit">Submit Task</button>
-        </form>
+        <label>Reason (If haven't formatted):</label>
+        <input type="text" name="reason_not_formatted" placeholder="Enter reason if not formatted">
 
-        <a href="{% url 'systemengineer_dashboard' %}" class="back-link">← Back to Dashboard</a>
-    </div>
+        <label>Upload Status:</label>
+        <input type="text" name="upload_status" placeholder="Enter upload status">
+
+        <label>Reason (If haven't uploaded):</label>
+        <input type="text" name="reason_not_uploaded" placeholder="Enter reason if not uploaded">
+
+        <label>Remarks if any:</label>
+        <textarea name="remarks" rows="3" placeholder="Enter remarks"></textarea>
+
+        <button type="submit">Submit Task</button>
+    </form>
+
+    <a href="{% url 'systemengineer_dashboard' %}" class="back-link">← Back to Dashboard</a>
+</div>
 
 </body>
 </html>

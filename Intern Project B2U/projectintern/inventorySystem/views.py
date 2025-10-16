@@ -11,7 +11,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from django.http import FileResponse
 from .models import User, TechRefresh, TechRefreshRequest,Inventory,Request,Notification
-
+import io
 
 # ==============================
 # 🔐 LOGIN & LOGOUT
@@ -20,24 +20,23 @@ def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        selected_role = request.POST.get("role")
 
         user = authenticate(request, username=username, password=password)
 
         if user:
-            if user.role == selected_role:
-                login(request, user)
-                if user.role == "TeamLead":
-                    return redirect("teamlead_dashboard")
-                elif user.role == "SystemEngineer":
-                    return redirect("systemengineer_dashboard")
+            login(request, user)  # ✅ login ikut role sebenar di DB
+            # Redirect ikut role sebenar
+            if user.role == "TeamLead":
+                return redirect("teamlead_dashboard")
+            elif user.role == "SystemEngineer":
+                return redirect("systemengineer_dashboard")
             else:
-                messages.error(request, "Role does not match your account.")
+                messages.error(request, "Your account role is invalid.")
                 logout(request)
-                return redirect("login")  # ✅ pastikan ni
+                return redirect("login")
         else:
             messages.error(request, "Invalid username or password.")
-            return redirect("login")  # ✅ pastikan ni juga
+            return redirect("login")
 
     return render(request, "login.html")
 
@@ -334,59 +333,108 @@ def create_request(request):
 
 @login_required(login_url='login')
 def manage_requests(request):
-    if request.user.role != 'TeamLead':
-        messages.error(request, "You do not have permission to access this page.")
-        return redirect('login')
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'all')
 
-    status_filter = request.GET.get('status')
-    search_query = request.GET.get('search')
+    # Ambil semua Request
+    requests_qs = Request.objects.all()
+    tech_requests_qs = TechRefreshRequest.objects.all()
 
-    requests_qs = TechRefreshRequest.objects.all().order_by('-submitted_at')
-
+    # Filter berdasarkan search query
     if search_query:
         requests_qs = requests_qs.filter(
             Q(engineer__username__icontains=search_query) |
-            Q(user__icontains=search_query) |
-            Q(location__icontains=search_query)
+            Q(location__icontains=search_query) |
+            Q(user__icontains=search_query)
+        )
+        tech_requests_qs = tech_requests_qs.filter(
+            Q(engineer__username__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(user__icontains=search_query)
         )
 
+    # Filter berdasarkan status
     if status_filter and status_filter != 'all':
-        requests_qs = requests_qs.filter(status__iexact=status_filter)
+        requests_qs = requests_qs.filter(status=status_filter)
+        tech_requests_qs = tech_requests_qs.filter(status=status_filter)
+
+    # Gabungkan kedua-dua queryset
+    # Convert semua ke list supaya mudah loop di template
+    requests_list = list(requests_qs) + list(tech_requests_qs)
+    
+    # Optional: sort by created_at / submitted_at descending
+    requests_list.sort(key=lambda x: getattr(x, 'created_at', getattr(x, 'submitted_at', None)), reverse=True)
 
     context = {
-        'requests': requests_qs,
-        'status_filter': status_filter,
+        'requests': requests_list,
         'search_query': search_query,
+        'status_filter': status_filter,
     }
     return render(request, 'manage_requests.html', context)
 
 
-@login_required(login_url='login')
-def approve_request(request, request_id):
-    req = get_object_or_404(TechRefreshRequest, id=request_id)
-    req.status = "Approved"
-    req.save()
-    messages.success(request, f"Request by {req.engineer.username} has been approved.")
+def view_request_details(request, rtype, req_id):
+    """
+    rtype: 'request' or 'techrefresh'
+    """
+    if rtype == 'request':
+        req = get_object_or_404(Request, id=req_id)
+    elif rtype == 'techrefresh':
+        req = get_object_or_404(TechRefreshRequest, id=req_id)
+    else:
+        messages.error(request, "Invalid request type.")
+        return redirect('manage_requests')
+
+    return render(request, 'view_request_details.html', {
+        'req': req,
+        'request_type': rtype
+    })
+
+
+def approve_request(request, req_id):
+    """
+    Approve only Requests (Request & TechRefreshRequest)
+    """
+    # Try Request first
+    req = Request.objects.filter(id=req_id).first()
+    if req:
+        req.status = 'Approved'
+        req.save()
+        messages.success(request, f"Request {req.id} approved.")
+        return redirect('manage_requests')
+    
+    # Try TechRefreshRequest
+    req = TechRefreshRequest.objects.filter(id=req_id).first()
+    if req:
+        req.status = 'Approved'
+        req.save()
+        messages.success(request, f"Tech Refresh Request {req.id} approved.")
+        return redirect('manage_requests')
+
+    messages.error(request, "Request not found.")
     return redirect('manage_requests')
 
 
-@login_required(login_url='login')
-def reject_request(request, request_id):
-    req = get_object_or_404(TechRefreshRequest, id=request_id)
-    req.status = "Rejected"
-    req.save()
-    messages.warning(request, f"Request by {req.engineer.username} has been rejected.")
+def reject_request(request, req_id):
+    """
+    Reject only Requests (Request & TechRefreshRequest)
+    """
+    req = Request.objects.filter(id=req_id).first()
+    if req:
+        req.status = 'Rejected'
+        req.save()
+        messages.success(request, f"Request {req.id} rejected.")
+        return redirect('manage_requests')
+    
+    req = TechRefreshRequest.objects.filter(id=req_id).first()
+    if req:
+        req.status = 'Rejected'
+        req.save()
+        messages.success(request, f"Tech Refresh Request {req.id} rejected.")
+        return redirect('manage_requests')
+
+    messages.error(request, "Request not found.")
     return redirect('manage_requests')
-
-
-@login_required(login_url='login')
-def view_request_details(request, request_id):
-    if request.user.role != 'TeamLead':
-        messages.error(request, "You do not have permission to view this page.")
-        return redirect('login')
-
-    req = get_object_or_404(TechRefreshRequest, id=request_id)
-    return render(request, 'view_request_details.html', {'req': req})
 
 
 # ==============================
@@ -493,44 +541,19 @@ def send_feedback(request):
     return render(request, 'send_feedback.html')
 
 
-# ----------------------------
-# 🔔 Notifications
-# ----------------------------
-
-def approve_request(request, request_id):
-    req = Request.objects.get(id=request_id)
-    req.status = 'Approved'
-    req.save()
-
-    # Hantar notifikasi kepada System Engineer
-    Notification.objects.create(
-        user=req.engineer,  # System Engineer yang buat request tu
-        message=f"Your request '{req.id}' has been approved by Team Lead."
-    )
-
-    return redirect('manage_requests')
+#NOTIFICATIONS
+@login_required
+def notifications_view(request):
+    # Ambil semua notifikasi milik user yang login
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'notifications.html', {'notifications': notifications})
 
 
-def reject_request(request, request_id):
-    req = Request.objects.get(id=request_id)
-    req.status = 'Rejected'
-    req.save()
+@login_required
+def mark_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    return redirect('notifications')
 
-    # Contoh kalau Team Lead tambah komen
-    comment = request.POST.get('comment', 'No comments provided.')
 
-    # Hantar notifikasi kepada System Engineer
-    Notification.objects.create(
-        user=req.engineer,
-        message=f"Your request '{req.id}' has been rejected by Team Lead. Comment: {comment}"
-    )
-
-    return redirect('manage_requests')
-
-def notifications(request):
-    user_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-
-    # Tandakan semua sebagai "read" bila dibuka
-    user_notifications.update(is_read=True)
-
-    return render(request, 'inventorySystem/notifications.html', {'notifications': user_notifications})

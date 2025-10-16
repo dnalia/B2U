@@ -21,11 +21,10 @@ urlpatterns = [
     path('dashboard/teamlead/manage-engineers/delete/<int:engineer_id>/', views.delete_engineer, name='delete_engineer'),
 
     # Manage Requests (Team Lead)
-    path('dashboard/teamlead/manage-requests/', views.manage_requests, name='manage_requests'),
-    path('dashboard/teamlead/request/<int:request_id>/approve/', views.approve_request, name='approve_request'),
-    path('dashboard/teamlead/request/<int:request_id>/reject/', views.reject_request, name='reject_request'),
-    path('view-request/<int:request_id>/', views.view_request_details, name='view_request_details'),
+    path('manage_requests/', views.manage_requests, name='manage_requests'),
     path('request/<int:request_id>/details/', views.view_request_details, name='view_request_details'),
+    path('request/<int:request_id>/approve/', views.approve_request, name='approve_request'),
+    path('request/<int:request_id>/reject/', views.reject_request, name='reject_request'),
 
     # Engineer Requests
     path('dashboard/systemengineer/create-request/', views.create_request, name='create_request'),
@@ -43,18 +42,22 @@ urlpatterns = [
 
     # My Submissions
  # System Engineer Dashboard & Tasks
-path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
-path('dashboard/systemengineer/create_task/', views.create_task, name='create_task'),
-path('dashboard/systemengineer/my_submissions/', views.my_submissions, name='my_submissions'),
-path('dashboard/systemengineer/notifications/', views.notifications, name='notifications'),
-path('dashboard/systemengineer/update_status/<int:pk>/', views.update_status, name='update_status'),
+    path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
+    path('dashboard/systemengineer/create_task/', views.create_task, name='create_task'),
+    path('dashboard/systemengineer/my_submissions/', views.my_submissions, name='my_submissions'),
+
+    # Notifications
+    path('dashboard/systemengineer/notifications/', views.notifications_view, name='notifications'),
+    path('dashboard/systemengineer/notifications/mark/<int:notification_id>/', views.mark_as_read, name='mark_as_read'),
+
+    #view request details
+    path('requests/<str:rtype>/<int:req_id>/', views.view_request_details, name='view_request_details'),
+    path('requests/<int:req_id>/approve/', views.approve_request, name='approve_request'),
+    path('requests/<int:req_id>/reject/', views.reject_request, name='reject_request'),
+
 
     # Update Inventory Status
     path('dashboard/systemengineer/update_status/<int:pk>/', views.update_status, name='update_status'),
-
-    # Notifications
-    path('dashboard/systemengineer/notifications/', views.notifications, name='notifications'),
-
 
     # MAINTENANCE LOGS
     path('inventory/maintenance-logs/', views.maintenance_logs, name='maintenance_logs'),
