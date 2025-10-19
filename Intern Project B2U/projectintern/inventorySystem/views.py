@@ -12,6 +12,8 @@ from reportlab.pdfgen import canvas
 from django.http import FileResponse
 from .models import User, TechRefresh, TechRefreshRequest,Inventory,Request,Notification
 import io
+from django.http import JsonResponse
+from django.core.serializers import serialize
 
 # ==============================
 # 🔐 LOGIN & LOGOUT
@@ -372,11 +374,7 @@ def manage_requests(request):
     }
     return render(request, 'manage_requests.html', context)
 
-
 def view_request_details(request, rtype, req_id):
-    """
-    rtype: 'request' or 'techrefresh'
-    """
     if rtype == 'request':
         req = get_object_or_404(Request, id=req_id)
     elif rtype == 'techrefresh':
@@ -392,23 +390,26 @@ def view_request_details(request, rtype, req_id):
 
 
 def approve_request(request, req_id):
-    """
-    Approve only Requests (Request & TechRefreshRequest)
-    """
-    # Try Request first
     req = Request.objects.filter(id=req_id).first()
     if req:
         req.status = 'Approved'
         req.save()
-        messages.success(request, f"Request {req.id} approved.")
+        Notification.objects.create(
+            user=req.engineer,
+            message=f"Your submission for {req.user} has been approved by the Team Lead."
+        )
+        messages.success(request, f"Request for {req.user} approved and notification sent.")
         return redirect('manage_requests')
     
-    # Try TechRefreshRequest
     req = TechRefreshRequest.objects.filter(id=req_id).first()
     if req:
         req.status = 'Approved'
         req.save()
-        messages.success(request, f"Tech Refresh Request {req.id} approved.")
+        Notification.objects.create(
+            user=req.engineer,
+            message=f"Your Tech Refresh submission for {req.user} has been approved by the Team Lead."
+        )
+        messages.success(request, f"Tech Refresh request for {req.user} approved and notification sent.")
         return redirect('manage_requests')
 
     messages.error(request, "Request not found.")
@@ -416,21 +417,26 @@ def approve_request(request, req_id):
 
 
 def reject_request(request, req_id):
-    """
-    Reject only Requests (Request & TechRefreshRequest)
-    """
     req = Request.objects.filter(id=req_id).first()
     if req:
         req.status = 'Rejected'
         req.save()
-        messages.success(request, f"Request {req.id} rejected.")
+        Notification.objects.create(
+            user=req.engineer,
+            message=f"Your submission for {req.user} has been rejected by the Team Lead."
+        )
+        messages.success(request, f"Request for {req.user} rejected and notification sent.")
         return redirect('manage_requests')
     
     req = TechRefreshRequest.objects.filter(id=req_id).first()
     if req:
         req.status = 'Rejected'
         req.save()
-        messages.success(request, f"Tech Refresh Request {req.id} rejected.")
+        Notification.objects.create(
+            user=req.engineer,
+            message=f"Your Tech Refresh submission for {req.user} has been rejected by the Team Lead."
+        )
+        messages.success(request, f"Tech Refresh request for {req.user} rejected and notification sent.")
         return redirect('manage_requests')
 
     messages.error(request, "Request not found.")

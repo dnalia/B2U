@@ -75,20 +75,10 @@
             background-color: #f0f4ff;
         }
 
-        .status-pending {
-            color: #ff9800;
-            font-weight: bold;
-        }
-
-        .status-approved {
-            color: #4caf50;
-            font-weight: bold;
-        }
-
-        .status-rejected {
-            color: #f44336;
-            font-weight: bold;
-        }
+        .status-pending { color: #ff9800; font-weight: bold; }
+        .status-approved { color: #4caf50; font-weight: bold; }
+        .status-rejected { color: #f44336; font-weight: bold; }
+        .status-cancelled { color: #9e9e9e; font-weight: bold; }
 
         a.btn {
             text-decoration: none;
@@ -97,6 +87,8 @@
             color: white;
             font-weight: 600;
             transition: 0.3s;
+            margin-right: 5px;
+            display: inline-block;
         }
 
         .btn-view { background-color: #004aad; }
@@ -150,13 +142,16 @@
                         <span class="status-pending">{{ task.status }}</span>
                     {% elif task.status == "Approved" %}
                         <span class="status-approved">{{ task.status }}</span>
-                    {% else %}
+                    {% elif task.status == "Rejected" %}
                         <span class="status-rejected">{{ task.status }}</span>
+                    {% elif task.status == "Cancelled" %}
+                        <span class="status-cancelled">{{ task.status }}</span>
                     {% endif %}
                 </td>
                 <td>{{ task.created_at|date:"d M Y, h:i A" }}</td>
                 <td>
-                    <a href="{% url 'task_detail' task.id %}" class="btn btn-view">View</a>
+                    <a href="{% url 'task_detail' 'request' task.id %}" class="btn btn-view">View</a>
+
 
                     {% if task.status == "Pending" %}
                         <a href="{% url 'edit_task' task.id %}" class="btn btn-edit">Edit</a>
@@ -166,6 +161,7 @@
                         </a>
                     {% elif task.status == "Approved" %}
                         <a href="{% url 'download_task_pdf' task.id %}" class="btn btn-download">Download PDF</a>
+
                     {% endif %}
                 </td>
             </tr>
