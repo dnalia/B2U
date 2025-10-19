@@ -115,9 +115,9 @@
     <p><strong>Submitted At:</strong> {{ req.submitted_at|default:"-"|date:"Y-m-d H:i" }}</p>
     <p><strong>Old Hostname:</strong> {{ req.old_hostname|default:"-" }}</p>
     <p><strong>New Hostname:</strong> {{ req.new_hostname|default:"-" }}</p>
-    <p><strong>Old Serial Number:</strong> {{ req.old_serial_number|default:"-" }}</p>
-    <p><strong>New Serial Number:</strong> {{ req.new_serial_number|default:"-" }}</p>
-    <p><strong>Rescheduled Date:</strong> {{ req.date_if_rescheduled|default:"-" }}</p>
+    <p><strong>Old Serial Number:</strong> {{ req.old_serial|default:"-" }}</p>
+    <p><strong>New Serial Number:</strong> {{ req.new_serial|default:"-" }}</p>
+    <p><strong>Rescheduled Date:</strong> {{ req.rescheduled_date|default:"-" }}</p>
     <p><strong>Format Status:</strong> {{ req.format_status|default:"-" }}</p>
     <p><strong>Reason (if not formatted):</strong> {{ req.reason_not_formatted|default:"-" }}</p>
     <p><strong>Upload Status:</strong> {{ req.upload_status|default:"Not Yet" }}</p>
