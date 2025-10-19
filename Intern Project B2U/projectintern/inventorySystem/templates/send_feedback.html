@@ -1,0 +1,7 @@
+<h1>Send Feedback</h1>
+<form method="post">
+    {% csrf_token %}
+    <textarea name="message" placeholder="Type your feedback here..." rows="5" cols="50"></textarea><br><br>
+    <button type="submit">Submit</button>
+</form>
+<a href="{% url 'systemengineer_dashboard' %}">Back to Dashboard</a>

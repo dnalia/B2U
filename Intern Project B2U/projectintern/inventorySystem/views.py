@@ -9,8 +9,11 @@ from io import BytesIO
 import pandas as pd
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-
-from .models import User, TechRefresh, TechRefreshRequest
+from django.http import FileResponse
+from .models import User, TechRefresh, TechRefreshRequest,Inventory,Request,Notification
+import io
+from django.http import JsonResponse
+from django.core.serializers import serialize
 
 # ==============================
 # 🔐 LOGIN & LOGOUT
@@ -21,19 +24,24 @@ def login_view(request):
         password = request.POST.get("password")
 
         user = authenticate(request, username=username, password=password)
+
         if user:
-            login(request, user)
-            role = user.role.lower()
-            if role == "teamlead":
+            login(request, user)  # ✅ login ikut role sebenar di DB
+            # Redirect ikut role sebenar
+            if user.role == "TeamLead":
                 return redirect("teamlead_dashboard")
-            elif role == "systemengineer":
-                return redirect("engineer_dashboard")
+            elif user.role == "SystemEngineer":
+                return redirect("systemengineer_dashboard")
             else:
-                messages.error(request, "Invalid role assigned.")
+                messages.error(request, "Your account role is invalid.")
                 logout(request)
+                return redirect("login")
         else:
             messages.error(request, "Invalid username or password.")
+            return redirect("login")
+
     return render(request, "login.html")
+
 
 
 def logout_view(request):
@@ -46,6 +54,184 @@ def logout_view(request):
 # ==============================
 def homepage(request):
     return render(request, "homepage.html")
+
+
+# ==============================
+# 📊 DASHBOARDS
+# ==============================
+@login_required(login_url='login')
+def teamlead_dashboard(request):
+    if request.user.role != 'TeamLead':
+        messages.error(request, "Access denied. You are not a Team Lead.")
+        return redirect('login')
+
+    context = {
+        'total_engineers': User.objects.filter(role='SystemEngineer').count(),
+        'total_tasks': TechRefresh.objects.count(),
+        'pending_tasks': TechRefresh.objects.filter(status='Pending').count(),
+        'completed_tasks': TechRefresh.objects.filter(status='Completed').count(),
+    }
+    return render(request, 'teamlead_dashboard.html', context)
+
+
+# ----------------------------
+# 🧑‍🔧 System Engineer Dashboard
+# ----------------------------
+@login_required(login_url='login')
+def systemengineer_dashboard(request):
+    user = request.user
+    my_requests = TechRefreshRequest.objects.filter(engineer=user)
+    assigned_items = Inventory.objects.filter(added_by=user)  # boleh tukar ikut logic assigned items
+
+    context = {
+        'pending_count': my_requests.filter(status='Pending').count(),
+        'approved_count': my_requests.filter(status='Approved').count(),
+        'rejected_count': my_requests.filter(status='Rejected').count(),
+        'my_requests': my_requests,
+        'assigned_items': assigned_items
+    }
+    return render(request, 'systemengineer_dashboard.html', context)
+
+
+# ----------------------------
+# 📄 Create Task
+# ----------------------------
+@login_required(login_url='login')
+def create_task(request):
+    # Ambil semua Team Lead untuk pilih approver
+    teamleads = User.objects.filter(role='TeamLead')
+    
+    if request.method == 'POST':
+        task_type = request.POST.get('task_type')
+        location = request.POST.get('location')
+        user_name = request.POST.get('user_name')
+        old_barcode = request.POST.get('old_barcode')
+        new_barcode = request.POST.get('new_barcode')
+        old_serial = request.POST.get('old_serial')
+        new_serial = request.POST.get('new_serial')
+        old_ip = request.POST.get('old_ip')
+        new_ip = request.POST.get('new_ip')
+        new_mac = request.POST.get('new_mac')
+        remarks = request.POST.get('remarks')
+        approver_id = request.POST.get('assigned_approver')
+        proof = request.FILES.get('proof')
+
+        assigned_approver = None
+        if approver_id:
+            assigned_approver = User.objects.get(id=approver_id)
+
+        # Buat Request baru
+        Request.objects.create(
+            engineer=request.user,
+            type=task_type,
+            location=location,
+            user=user_name,
+            old_barcode=old_barcode,
+            new_barcode=new_barcode,
+            old_serial=old_serial,
+            new_serial=new_serial,
+            old_ip=old_ip,
+            new_ip=new_ip,
+            new_mac=new_mac,
+            remarks=remarks,
+            proof=proof,
+            assigned_approver=assigned_approver
+        )
+
+        messages.success(request, "Task submitted successfully!")
+        return redirect('systemengineer_dashboard')
+
+    context = {
+        'teamleads': teamleads
+    }
+    return render(request, 'create_task.html', context)
+
+# ----------------------------
+# 📝 My Submissions
+# ----------------------------
+@login_required
+def my_submissions(request):
+    submissions = Request.objects.filter(engineer=request.user).order_by('-created_at')
+    return render(request, 'my_submissions.html', {'submissions': submissions})
+
+@login_required
+def cancel_task(request, task_id):
+    task = get_object_or_404(Request, id=task_id, engineer=request.user)
+    if task.status == "Pending":
+        task.status = "Cancelled"
+        task.save()
+    return redirect('my_submissions')
+
+@login_required
+def edit_task(request, task_id):
+    task = get_object_or_404(Request, id=task_id, engineer=request.user)
+    if request.method == 'POST':
+        task.location = request.POST.get('location')
+        task.user = request.POST.get('user')
+        task.new_barcode = request.POST.get('new_barcode')
+        task.new_serial = request.POST.get('new_serial')
+        task.save()
+        return redirect('my_submissions')
+    return render(request, 'edit_task.html', {'task': task})
+
+@login_required
+def download_task_pdf(request, task_id):
+    task = get_object_or_404(Request, id=task_id, engineer=request.user)
+
+    if task.status != 'Approved':
+        messages.error(request, "You can only download approved tasks.")
+        return redirect('my_submissions')
+
+    # Generate PDF guna reportlab
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(200, height - 50, "Task Report")
+
+    p.setFont("Helvetica", 12)
+    y = height - 100
+    details = [
+        f"Engineer: {task.engineer.username}",
+        f"Task Type: {task.type}",
+        f"Status: {task.status}",
+        f"Location: {task.location}",
+        f"Old Barcode: {task.old_barcode}",
+        f"New Barcode: {task.new_barcode}",
+        f"Old Serial: {task.old_serial}",
+        f"New Serial: {task.new_serial}",
+        f"Old IP: {task.old_ip}",
+        f"New IP: {task.new_ip}",
+        f"Remarks: {task.remarks or '-'}",
+        f"Date Submitted: {task.created_at.strftime('%Y-%m-%d %H:%M')}",
+    ]
+
+    for line in details:
+        p.drawString(80, y, line)
+        y -= 20
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"task_{task.id}.pdf")
+
+# ----------------------------
+# 🛠 Update Inventory Status
+# ----------------------------
+@login_required(login_url='login')
+def update_status(request, pk):
+    item = get_object_or_404(Inventory, pk=pk)
+    if request.method == 'POST':
+        item.condition = request.POST.get('condition')
+        item.save()
+        messages.success(request, f'Status for {item.item_name} updated!')
+        return redirect('systemengineer_dashboard')
+    return render(request, 'update_status.html', {'item': item})
+
+
+
+
 
 
 # ==============================
@@ -81,38 +267,12 @@ def tech_refresh_list(request):
 
 
 # ==============================
-# 📊 DASHBOARDS
-# ==============================
-@login_required(login_url='login')
-def teamlead_dashboard(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
-
-    context = {
-        'total_engineers': User.objects.filter(role__iexact='SystemEngineer').count(),
-        'total_tasks': TechRefresh.objects.count(),
-        'pending_tasks': TechRefresh.objects.filter(status__iexact='Pending').count(),
-        'completed_tasks': TechRefresh.objects.filter(status__iexact='Completed').count(),
-    }
-    return render(request, 'teamlead_dashboard.html', context)
-
-
-@login_required(login_url='login')
-def engineer_dashboard(request):
-    if request.user.role.lower() != 'systemengineer':
-        return redirect('teamlead_dashboard')
-
-    requests_list = TechRefreshRequest.objects.filter(engineer=request.user).order_by('-submitted_at')
-    return render(request, 'engineer_dashboard.html', {'requests': requests_list})
-
-
-# ==============================
 # 👥 MANAGE ENGINEERS
 # ==============================
 @login_required(login_url='login')
 def manage_engineers(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
+    if request.user.role != 'TeamLead':
+        return redirect('systemengineer_dashboard')
 
     if request.method == "POST":
         username = request.POST.get("username")
@@ -127,13 +287,13 @@ def manage_engineers(request):
         )
         return redirect('manage_engineers')
 
-    engineers = User.objects.filter(role__iexact='SystemEngineer')
+    engineers = User.objects.filter(role='SystemEngineer')
     return render(request, "manage_engineers.html", {"engineers": engineers})
 
 
 @login_required(login_url='login')
 def edit_engineer(request, engineer_id):
-    engineer = get_object_or_404(User, id=engineer_id, role__iexact='SystemEngineer')
+    engineer = get_object_or_404(User, id=engineer_id, role='SystemEngineer')
     if request.method == 'POST':
         engineer.username = request.POST.get('username')
         engineer.email = request.POST.get('email')
@@ -148,7 +308,7 @@ def edit_engineer(request, engineer_id):
 
 @login_required(login_url='login')
 def delete_engineer(request, engineer_id):
-    engineer = get_object_or_404(User, id=engineer_id, role__iexact='SystemEngineer')
+    engineer = get_object_or_404(User, id=engineer_id, role='SystemEngineer')
     engineer.delete()
     return redirect('manage_engineers')
 
@@ -169,65 +329,118 @@ def create_request(request):
             remarks=request.POST.get('remarks'),
             proof=request.FILES.get('proof')
         )
-        return redirect('engineer_dashboard')
+        return redirect('systemengineer_dashboard')
     return render(request, 'create_request.html')
 
 
 @login_required(login_url='login')
 def manage_requests(request):
-    if request.user.role.lower() != 'teamlead':
-        messages.error(request, "You do not have permission to access this page.")
-        return redirect('login')
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'all')
 
-    status_filter = request.GET.get('status')
-    search_query = request.GET.get('search')
+    # Ambil semua Request
+    requests_qs = Request.objects.all()
+    tech_requests_qs = TechRefreshRequest.objects.all()
 
-    requests_qs = TechRefreshRequest.objects.all().order_by('-submitted_at')
-
+    # Filter berdasarkan search query
     if search_query:
         requests_qs = requests_qs.filter(
             Q(engineer__username__icontains=search_query) |
-            Q(user__icontains=search_query) |
-            Q(location__icontains=search_query)
+            Q(location__icontains=search_query) |
+            Q(user__icontains=search_query)
+        )
+        tech_requests_qs = tech_requests_qs.filter(
+            Q(engineer__username__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(user__icontains=search_query)
         )
 
+    # Filter berdasarkan status
     if status_filter and status_filter != 'all':
-        requests_qs = requests_qs.filter(status__iexact=status_filter)
+        requests_qs = requests_qs.filter(status=status_filter)
+        tech_requests_qs = tech_requests_qs.filter(status=status_filter)
+
+    # Gabungkan kedua-dua queryset
+    # Convert semua ke list supaya mudah loop di template
+    requests_list = list(requests_qs) + list(tech_requests_qs)
+    
+    # Optional: sort by created_at / submitted_at descending
+    requests_list.sort(key=lambda x: getattr(x, 'created_at', getattr(x, 'submitted_at', None)), reverse=True)
 
     context = {
-        'requests': requests_qs,
-        'status_filter': status_filter,
+        'requests': requests_list,
         'search_query': search_query,
+        'status_filter': status_filter,
     }
     return render(request, 'manage_requests.html', context)
 
+def view_request_details(request, rtype, req_id):
+    if rtype == 'request':
+        req = get_object_or_404(Request, id=req_id)
+    elif rtype == 'techrefresh':
+        req = get_object_or_404(TechRefreshRequest, id=req_id)
+    else:
+        messages.error(request, "Invalid request type.")
+        return redirect('manage_requests')
 
-@login_required(login_url='login')
-def approve_request(request, request_id):
-    req = get_object_or_404(TechRefreshRequest, id=request_id)
-    req.status = "Approved"
-    req.save()
-    messages.success(request, f"Request by {req.engineer.username} has been approved.")
+    return render(request, 'view_request_details.html', {
+        'req': req,
+        'request_type': rtype
+    })
+
+
+def approve_request(request, req_id):
+    req = Request.objects.filter(id=req_id).first()
+    if req:
+        req.status = 'Approved'
+        req.save()
+        Notification.objects.create(
+            user=req.engineer,
+            message=f"Your submission for {req.user} has been approved by the Team Lead."
+        )
+        messages.success(request, f"Request for {req.user} approved and notification sent.")
+        return redirect('manage_requests')
+    
+    req = TechRefreshRequest.objects.filter(id=req_id).first()
+    if req:
+        req.status = 'Approved'
+        req.save()
+        Notification.objects.create(
+            user=req.engineer,
+            message=f"Your Tech Refresh submission for {req.user} has been approved by the Team Lead."
+        )
+        messages.success(request, f"Tech Refresh request for {req.user} approved and notification sent.")
+        return redirect('manage_requests')
+
+    messages.error(request, "Request not found.")
     return redirect('manage_requests')
 
 
-@login_required(login_url='login')
-def reject_request(request, request_id):
-    req = get_object_or_404(TechRefreshRequest, id=request_id)
-    req.status = "Rejected"
-    req.save()
-    messages.warning(request, f"Request by {req.engineer.username} has been rejected.")
+def reject_request(request, req_id):
+    req = Request.objects.filter(id=req_id).first()
+    if req:
+        req.status = 'Rejected'
+        req.save()
+        Notification.objects.create(
+            user=req.engineer,
+            message=f"Your submission for {req.user} has been rejected by the Team Lead."
+        )
+        messages.success(request, f"Request for {req.user} rejected and notification sent.")
+        return redirect('manage_requests')
+    
+    req = TechRefreshRequest.objects.filter(id=req_id).first()
+    if req:
+        req.status = 'Rejected'
+        req.save()
+        Notification.objects.create(
+            user=req.engineer,
+            message=f"Your Tech Refresh submission for {req.user} has been rejected by the Team Lead."
+        )
+        messages.success(request, f"Tech Refresh request for {req.user} rejected and notification sent.")
+        return redirect('manage_requests')
+
+    messages.error(request, "Request not found.")
     return redirect('manage_requests')
-
-
-@login_required(login_url='login')
-def view_request_details(request, request_id):
-    if request.user.role.lower() != 'teamlead':
-        messages.error(request, "You do not have permission to view this page.")
-        return redirect('login')
-
-    req = get_object_or_404(TechRefreshRequest, id=request_id)
-    return render(request, 'view_request_details.html', {'req': req})
 
 
 # ==============================
@@ -235,8 +448,8 @@ def view_request_details(request, request_id):
 # ==============================
 @login_required(login_url='login')
 def reports(request):
-    if request.user.role.lower() != 'teamlead':
-        return redirect('engineer_dashboard')
+    if request.user.role != 'TeamLead':
+        return redirect('systemengineer_dashboard')
 
     requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
     context = {'requests': requests_list}
@@ -300,3 +513,53 @@ def export_requests_pdf(request):
     buffer.close()
     response.write(pdf)
     return response
+
+#MAINTENANCE LOGS
+@login_required
+def maintenance_logs(request):
+    logs = [
+        {'item': 'Monitor', 'issue': 'Display flickering', 'date': '2025-10-10'},
+        {'item': 'Keyboard', 'issue': 'Key stuck', 'date': '2025-10-12'},
+    ]
+    return render(request, 'maintenance_logs.html', {'logs': logs})
+
+#ASSIGNED ITEMS
+@login_required(login_url='login')
+def assigned_items(request):
+    # Mock data untuk test
+    items = [
+        {'name': 'Laptop Dell', 'status': 'In Use'},
+        {'name': 'Mouse HP', 'status': 'Returned'},
+    ]
+    return render(request, 'assigned_items.html', {'items': items})
+
+
+#send feedback
+@login_required(login_url='login')
+def send_feedback(request):
+    if request.method == 'POST':
+        message = request.POST.get('message')
+        # Simpan mesej atau hantar email / CloudDB dsb ikut keperluan
+        # Buat sementara kita cuma bagi success message
+        messages.success(request, "Feedback submitted successfully!")
+        return redirect('systemengineer_dashboard')
+    
+    return render(request, 'send_feedback.html')
+
+
+#NOTIFICATIONS
+@login_required
+def notifications_view(request):
+    # Ambil semua notifikasi milik user yang login
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'notifications.html', {'notifications': notifications})
+
+
+@login_required
+def mark_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    return redirect('notifications')
+
+

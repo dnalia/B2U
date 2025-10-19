@@ -1,0 +1,14 @@
+<h1>Assigned Items</h1>
+<table border="1">
+    <tr>
+        <th>Item Name</th>
+        <th>Status</th>
+    </tr>
+    {% for item in items %}
+    <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ item.status }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<a href="{% url 'systemengineer_dashboard' %}">Back to Dashboard</a>

@@ -1,0 +1,12 @@
+<h1>Update Status for {{ item.item_name }}</h1>
+<form method="POST">
+    {% csrf_token %}
+    <label>Condition:</label>
+    <select name="condition">
+        <option value="In Use" {% if item.condition == "In Use" %}selected{% endif %}>In Use</option>
+        <option value="Returned" {% if item.condition == "Returned" %}selected{% endif %}>Returned</option>
+        <option value="Damaged" {% if item.condition == "Damaged" %}selected{% endif %}>Damaged</option>
+    </select>
+    <button type="submit">Update</button>
+</form>
+<a href="{% url 'systemengineer_dashboard' %}">Back</a>

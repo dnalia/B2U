@@ -9,7 +9,7 @@ urlpatterns = [
 
     # Dashboards
     path('dashboard/teamlead/', views.teamlead_dashboard, name='teamlead_dashboard'),
-    path('dashboard/engineer/', views.engineer_dashboard, name='engineer_dashboard'),
+    path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
 
     # Tech Refresh
     path('tech-refresh/add/', views.add_tech_refresh, name='add_tech_refresh'),
@@ -21,17 +21,52 @@ urlpatterns = [
     path('dashboard/teamlead/manage-engineers/delete/<int:engineer_id>/', views.delete_engineer, name='delete_engineer'),
 
     # Manage Requests (Team Lead)
-    path('dashboard/teamlead/manage-requests/', views.manage_requests, name='manage_requests'),
-    path('dashboard/teamlead/request/<int:request_id>/approve/', views.approve_request, name='approve_request'),
-    path('dashboard/teamlead/request/<int:request_id>/reject/', views.reject_request, name='reject_request'),
-    path('view-request/<int:request_id>/', views.view_request_details, name='view_request_details'),
-    path('request/<int:request_id>/details/', views.view_request_details, name='view_request_details'),
+    path('manage_requests/', views.manage_requests, name='manage_requests'),
+
+    # ✅ FIXED: View Request Details
+    path('request/<int:req_id>/details/', views.view_request_details, name='view_request_details'),
+
+    
+
+    # ✅ FIXED: Approve / Reject Request
+    path('request/<int:req_id>/approve/', views.approve_request, name='approve_request'),
+    path('request/<int:req_id>/reject/', views.reject_request, name='reject_request'),
 
     # Engineer Requests
-    path('dashboard/engineer/create-request/', views.create_request, name='create_request'),
+    path('dashboard/systemengineer/create-request/', views.create_request, name='create_request'),
 
     # Reports & Exports
     path('dashboard/teamlead/reports/', views.reports, name='reports'),
     path('dashboard/teamlead/export/excel/', views.export_requests_excel, name='export_requests_excel'),
     path('dashboard/teamlead/export/pdf/', views.export_requests_pdf, name='export_requests_pdf'),
+
+    # Dashboard
+    path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
+
+    # Create Task
+    path('dashboard/systemengineer/create_task/', views.create_task, name='create_task'),
+
+    # My Submissions
+    path('dashboard/systemengineer/my_submissions/', views.my_submissions, name='my_submissions'),
+    path('dashboard/systemengineer/my_submissions/<str:rtype>/<int:req_id>/view/',
+         views.view_request_details, name='task_detail'),
+    path('dashboard/systemengineer/my_submissions/<int:task_id>/download/',
+         views.download_task_pdf, name='download_task_pdf'),
+
+    # Notifications
+    path('dashboard/systemengineer/notifications/', views.notifications_view, name='notifications'),
+    path('dashboard/systemengineer/notifications/mark/<int:notification_id>/',
+         views.mark_as_read, name='mark_as_read'),
+
+    # Update Inventory Status
+    path('dashboard/systemengineer/update_status/<int:pk>/', views.update_status, name='update_status'),
+
+    # MAINTENANCE LOGS
+    path('inventory/maintenance-logs/', views.maintenance_logs, name='maintenance_logs'),
+
+    # ASSIGNED ITEMS
+    path('inventory/assigned-items/', views.assigned_items, name='assigned_items'),
+
+    # FEEDBACK
+    path('inventory/send-feedback/', views.send_feedback, name='send_feedback'),
 ]
