@@ -52,6 +52,8 @@ urlpatterns = [
          views.view_request_details, name='task_detail'),
     path('dashboard/systemengineer/my_submissions/<int:task_id>/download/',
          views.download_task_pdf, name='download_task_pdf'),
+     path('dashboard/systemengineer/my_submissions/<int:task_id>/edit/', views.edit_task, name='edit_task'),
+     path('dashboard/systemengineer/my_submissions/<int:task_id>/cancel/', views.cancel_task, name='cancel_task'),
 
     # Notifications
     path('dashboard/systemengineer/notifications/', views.notifications_view, name='notifications'),

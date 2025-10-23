@@ -132,6 +132,24 @@ class Request(models.Model):
         settings.AUTH_USER_MODEL, related_name='approver', on_delete=models.SET_NULL, null=True, blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    old_hostname = models.CharField(max_length=100, blank=True, null=True)
+    new_hostname = models.CharField(max_length=100, blank=True, null=True)
+
+    rescheduled_date = models.DateField(blank=True, null=True)
+
+    FORMAT_STATUS_CHOICES = [
+        ('Formatted', 'Formatted'),
+        ('Not Formatted', 'Not Formatted'),
+    ]
+    format_status = models.CharField(max_length=20, choices=FORMAT_STATUS_CHOICES, blank=True, null=True)
+    reason_not_formatted = models.TextField(blank=True, null=True)
+
+    UPLOAD_STATUS_CHOICES = [
+        ('Uploaded', 'Uploaded'),
+        ('Not Yet', 'Not Yet'),
+    ]
+    upload_status = models.CharField(max_length=20, choices=UPLOAD_STATUS_CHOICES, default='Not Yet')
+    reason_not_uploaded = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.type} - {self.engineer.username} ({self.status})"
