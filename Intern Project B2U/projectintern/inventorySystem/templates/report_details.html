@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Details - Beyond2U{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm border-0 rounded-4 p-4">
+        <h3 class="fw-bold text-primary mb-3">Request Details</h3>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <p><strong>Engineer Name:</strong> {{ report.engineer_name }}</p>
+                <p><strong>Request Type:</strong> {{ report.request_type }}</p>
+                <p><strong>Date Submitted:</strong> {{ report.date_submitted|date:"d M Y, H:i A" }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Status:</strong> 
+                    {% if report.status == 'Approved' %}
+                        <span class="badge bg-success">Approved</span>
+                    {% elif report.status == 'Pending' %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% else %}
+                        <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                </p>
+                <p><strong>Reviewed By:</strong> {{ report.reviewed_by }}</p>
+                <p><strong>Comment:</strong> {{ report.comment|default:"No comment" }}</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <h5 class="fw-semibold text-dark mt-4 mb-3">Uploaded Proof</h5>
+        {% if report.uploaded_file %}
+            <p><a href="{{ report.uploaded_file.url }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-file-earmark"></i> View Uploaded File
+            </a></p>
+        {% else %}
+            <p class="text-muted">No file uploaded.</p>
+        {% endif %}
+
+        <div class="mt-4">
+            <a href="{% url 'reports' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
