@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.conf import settings  # ✅ so we can use AUTH_USER_MODEL safely
+from django.conf import settings
 
 
 # -------------------------
@@ -75,20 +75,20 @@ class Inventory(models.Model):
     category = models.CharField(max_length=50)
     quantity = models.IntegerField(default=0)
     condition = models.CharField(max_length=50, choices=[
-        ('Good', 'Good'), 
-        ('Faulty', 'Faulty'), 
-        ('In Use', 'In Use'), 
-        ('Returned', 'Returned'), 
+        ('Good', 'Good'),
+        ('Faulty', 'Faulty'),
+        ('In Use', 'In Use'),
+        ('Returned', 'Returned'),
         ('Damaged', 'Damaged')
     ])
     location = models.CharField(max_length=100)
     last_updated = models.DateTimeField(auto_now=True)
     added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    
+
     assigned_to = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.SET_NULL, 
-        null=True, blank=True, 
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
         related_name='assigned_inventory'
     )
 
@@ -172,10 +172,10 @@ class TechRefreshRequest(models.Model):
     def __str__(self):
         return f"{self.engineer.username} - {self.status}"
 
+
 # -------------------------
 # NOTIFICATION MODEL
 # -------------------------
-
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()

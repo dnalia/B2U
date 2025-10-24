@@ -1,3 +1,4 @@
+from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -10,10 +11,35 @@ import pandas as pd
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from django.http import FileResponse
-from .models import User, TechRefresh, TechRefreshRequest,Inventory,Request,Notification
+from .models import User, TechRefresh, TechRefreshRequest, Inventory, Request, Notification
 import io
 from django.http import JsonResponse
 from django.core.serializers import serialize
+
+# -------------------------
+# Helper decorator: require_role
+# -------------------------
+def require_role(role):
+    """
+    Decorator to require a certain role on the request.user.
+    If user doesn't have the role, redirect to their dashboard.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        @login_required(login_url='login')
+        def _wrapped(request, *args, **kwargs):
+            # If user is not authenticated, login_required will redirect.
+            if not hasattr(request.user, 'role') or request.user.role != role:
+                # Redirect to the appropriate dashboard for their role
+                if hasattr(request.user, 'role') and request.user.role == 'SystemEngineer':
+                    messages.error(request, "Access denied: Team Lead only.")
+                    return redirect('systemengineer_dashboard')
+                else:
+                    messages.error(request, "Access denied.")
+                    return redirect('login')
+            return view_func(request, *args, **kwargs)
+        return _wrapped
+    return decorator
 
 # ==============================
 # 🔐 LOGIN & LOGOUT
@@ -22,12 +48,17 @@ def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+        selected_role = request.POST.get("role")  # 👈 ambil role dari form
 
         user = authenticate(request, username=username, password=password)
 
-        if user:
-            login(request, user)  # ✅ login ikut role sebenar di DB
-            # Redirect ikut role sebenar
+        if user and user.is_active:
+            if user.role != selected_role:  # 👈 semak role sebenar vs role pilihan
+                messages.error(request, f"Access denied: You are a {user.role}, not {selected_role}.")
+                return redirect("login")
+
+            login(request, user)
+
             if user.role == "TeamLead":
                 return redirect("teamlead_dashboard")
             elif user.role == "SystemEngineer":
@@ -42,8 +73,31 @@ def login_view(request):
 
     return render(request, "login.html")
 
+'''
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
 
+        user = authenticate(request, username=username, password=password)
 
+        if user and user.is_active:
+            login(request, user)
+            # Redirect ikut role sebenar
+            if user.role == "TeamLead":
+                return redirect("teamlead_dashboard")
+            elif user.role == "SystemEngineer":
+                return redirect("systemengineer_dashboard")
+            else:
+                messages.error(request, "Your account role is invalid.")
+                logout(request)
+                return redirect("login")
+        else:
+            messages.error(request, "Invalid username or password.")
+            return redirect("login")
+
+    return render(request, "login.html")
+'''
 def logout_view(request):
     logout(request)
     return redirect("login")
@@ -59,12 +113,8 @@ def homepage(request):
 # ==============================
 # 📊 DASHBOARDS
 # ==============================
-@login_required(login_url='login')
+@require_role('TeamLead')
 def teamlead_dashboard(request):
-    if request.user.role != 'TeamLead':
-        messages.error(request, "Access denied. You are not a Team Lead.")
-        return redirect('login')
-
     context = {
         'total_engineers': User.objects.filter(role='SystemEngineer').count(),
         'total_tasks': TechRefresh.objects.count(),
@@ -74,14 +124,16 @@ def teamlead_dashboard(request):
     return render(request, 'teamlead_dashboard.html', context)
 
 
-# ----------------------------
-# 🧑‍🔧 System Engineer Dashboard
-# ----------------------------
 @login_required(login_url='login')
 def systemengineer_dashboard(request):
+    # allow only system engineers here
+    if request.user.role != 'SystemEngineer':
+        messages.error(request, "Access denied. You are not a System Engineer.")
+        return redirect('teamlead_dashboard')
+
     user = request.user
     my_requests = TechRefreshRequest.objects.filter(engineer=user)
-    assigned_items = Inventory.objects.filter(added_by=user)  # boleh tukar ikut logic assigned items
+    assigned_items = Inventory.objects.filter(added_by=user)
 
     context = {
         'pending_count': my_requests.filter(status='Pending').count(),
@@ -94,13 +146,16 @@ def systemengineer_dashboard(request):
 
 
 # ----------------------------
-# 📄 Create Task
+# 📄 Create Task (SystemEngineer only)
 # ----------------------------
 @login_required(login_url='login')
 def create_task(request):
-    # Ambil semua Team Lead untuk pilih approver
+    if request.user.role != 'SystemEngineer':
+        messages.error(request, "Access denied. Only System Engineers can create tasks.")
+        return redirect('teamlead_dashboard')
+
     teamleads = User.objects.filter(role='TeamLead')
-    
+
     if request.method == 'POST':
         task_type = request.POST.get('task_type')
         location = request.POST.get('location')
@@ -118,9 +173,11 @@ def create_task(request):
 
         assigned_approver = None
         if approver_id:
-            assigned_approver = User.objects.get(id=approver_id)
+            try:
+                assigned_approver = User.objects.get(id=approver_id)
+            except User.DoesNotExist:
+                assigned_approver = None
 
-        # Buat Request baru
         Request.objects.create(
             engineer=request.user,
             type=task_type,
@@ -141,10 +198,9 @@ def create_task(request):
         messages.success(request, "Task submitted successfully!")
         return redirect('systemengineer_dashboard')
 
-    context = {
-        'teamleads': teamleads
-    }
+    context = {'teamleads': teamleads}
     return render(request, 'create_task.html', context)
+
 
 # ----------------------------
 # 📝 My Submissions
@@ -154,6 +210,7 @@ def my_submissions(request):
     submissions = Request.objects.filter(engineer=request.user).order_by('-created_at')
     return render(request, 'my_submissions.html', {'submissions': submissions})
 
+
 @login_required
 def cancel_task(request, task_id):
     task = get_object_or_404(Request, id=task_id, engineer=request.user)
@@ -161,6 +218,7 @@ def cancel_task(request, task_id):
         task.status = "Cancelled"
         task.save()
     return redirect('my_submissions')
+
 
 @login_required
 def edit_task(request, task_id):
@@ -174,6 +232,7 @@ def edit_task(request, task_id):
         return redirect('my_submissions')
     return render(request, 'edit_task.html', {'task': task})
 
+
 @login_required
 def download_task_pdf(request, task_id):
     task = get_object_or_404(Request, id=task_id, engineer=request.user)
@@ -182,7 +241,6 @@ def download_task_pdf(request, task_id):
         messages.error(request, "You can only download approved tasks.")
         return redirect('my_submissions')
 
-    # Generate PDF guna reportlab
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -216,11 +274,16 @@ def download_task_pdf(request, task_id):
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename=f"task_{task.id}.pdf")
 
+
 # ----------------------------
 # 🛠 Update Inventory Status
 # ----------------------------
 @login_required(login_url='login')
 def update_status(request, pk):
+    if request.user.role != 'SystemEngineer':
+        messages.error(request, "Access denied.")
+        return redirect('teamlead_dashboard')
+
     item = get_object_or_404(Inventory, pk=pk)
     if request.method == 'POST':
         item.condition = request.POST.get('condition')
@@ -230,15 +293,15 @@ def update_status(request, pk):
     return render(request, 'update_status.html', {'item': item})
 
 
-
-
-
-
 # ==============================
 # 🧾 TECH REFRESH FORMS
 # ==============================
 @login_required(login_url='login')
 def add_tech_refresh(request):
+    if request.user.role != 'TeamLead':
+        messages.error(request, "Access denied.")
+        return redirect('systemengineer_dashboard')
+
     if request.method == 'POST':
         TechRefresh.objects.create(
             engineer_name=request.POST.get('engineer_name'),
@@ -267,49 +330,60 @@ def tech_refresh_list(request):
 
 
 # ==============================
-# 👥 MANAGE ENGINEERS
+# 👥 MANAGE ENGINEERS (TeamLead only)
 # ==============================
-@login_required(login_url='login')
+@require_role('TeamLead')
 def manage_engineers(request):
-    if request.user.role != 'TeamLead':
-        return redirect('systemengineer_dashboard')
-
     if request.method == "POST":
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
+        role = request.POST.get("role", "SystemEngineer")
+        # Ensure role is valid
+        if role not in ['SystemEngineer', 'TeamLead']:
+            role = 'SystemEngineer'
 
-        User.objects.create(
-            username=username,
-            email=email,
-            password=make_password(password),
-            role='SystemEngineer'
-        )
+        # Use create_user to properly hash password
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.role = role
+        user.save()
+
+        messages.success(request, f"{username} created.")
         return redirect('manage_engineers')
 
     engineers = User.objects.filter(role='SystemEngineer')
     return render(request, "manage_engineers.html", {"engineers": engineers})
 
 
-@login_required(login_url='login')
+@require_role('TeamLead')
 def edit_engineer(request, engineer_id):
-    engineer = get_object_or_404(User, id=engineer_id, role='SystemEngineer')
+    engineer = get_object_or_404(User, id=engineer_id)
+    # team lead may edit engineers but not superusers (optional)
     if request.method == 'POST':
         engineer.username = request.POST.get('username')
         engineer.email = request.POST.get('email')
         password = request.POST.get('password')
+        role = request.POST.get('role', 'SystemEngineer')
         if password:
             engineer.set_password(password)
+        if role in ['SystemEngineer', 'TeamLead']:
+            engineer.role = role
         engineer.save()
         messages.success(request, 'Engineer updated successfully!')
         return redirect('manage_engineers')
     return render(request, 'edit_engineer.html', {'engineer': engineer})
 
 
-@login_required(login_url='login')
+@require_role('TeamLead')
 def delete_engineer(request, engineer_id):
-    engineer = get_object_or_404(User, id=engineer_id, role='SystemEngineer')
+    engineer = get_object_or_404(User, id=engineer_id)
+    # Prevent deleting yourself accidentally
+    if request.user.id == engineer.id:
+        messages.error(request, "You cannot delete your own account.")
+        return redirect('manage_engineers')
+
     engineer.delete()
+    messages.success(request, "Engineer deleted.")
     return redirect('manage_engineers')
 
 
@@ -335,14 +409,13 @@ def create_request(request):
 
 @login_required(login_url='login')
 def manage_requests(request):
+    # Allow both roles but show appropriate controls in template
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', 'all')
 
-    # Ambil semua Request
     requests_qs = Request.objects.all()
     tech_requests_qs = TechRefreshRequest.objects.all()
 
-    # Filter berdasarkan search query
     if search_query:
         requests_qs = requests_qs.filter(
             Q(engineer__username__icontains=search_query) |
@@ -355,16 +428,11 @@ def manage_requests(request):
             Q(user__icontains=search_query)
         )
 
-    # Filter berdasarkan status
     if status_filter and status_filter != 'all':
         requests_qs = requests_qs.filter(status=status_filter)
         tech_requests_qs = tech_requests_qs.filter(status=status_filter)
 
-    # Gabungkan kedua-dua queryset
-    # Convert semua ke list supaya mudah loop di template
     requests_list = list(requests_qs) + list(tech_requests_qs)
-    
-    # Optional: sort by created_at / submitted_at descending
     requests_list.sort(key=lambda x: getattr(x, 'created_at', getattr(x, 'submitted_at', None)), reverse=True)
 
     context = {
@@ -374,21 +442,8 @@ def manage_requests(request):
     }
     return render(request, 'manage_requests.html', context)
 
-def view_request_details(request, rtype, req_id):
-    if rtype == 'request':
-        req = get_object_or_404(Request, id=req_id)
-    elif rtype == 'techrefresh':
-        req = get_object_or_404(TechRefreshRequest, id=req_id)
-    else:
-        messages.error(request, "Invalid request type.")
-        return redirect('manage_requests')
 
-    return render(request, 'view_request_details.html', {
-        'req': req,
-        'request_type': rtype
-    })
-
-
+@require_role('TeamLead')
 def approve_request(request, req_id):
     req = Request.objects.filter(id=req_id).first()
     if req:
@@ -400,7 +455,7 @@ def approve_request(request, req_id):
         )
         messages.success(request, f"Request for {req.user} approved and notification sent.")
         return redirect('manage_requests')
-    
+
     req = TechRefreshRequest.objects.filter(id=req_id).first()
     if req:
         req.status = 'Approved'
@@ -416,6 +471,7 @@ def approve_request(request, req_id):
     return redirect('manage_requests')
 
 
+@require_role('TeamLead')
 def reject_request(request, req_id):
     req = Request.objects.filter(id=req_id).first()
     if req:
@@ -427,7 +483,7 @@ def reject_request(request, req_id):
         )
         messages.success(request, f"Request for {req.user} rejected and notification sent.")
         return redirect('manage_requests')
-    
+
     req = TechRefreshRequest.objects.filter(id=req_id).first()
     if req:
         req.status = 'Rejected'
@@ -444,19 +500,16 @@ def reject_request(request, req_id):
 
 
 # ==============================
-# 📈 REPORTS & EXPORTS
+# 📈 REPORTS & EXPORTS (TeamLead only)
 # ==============================
-@login_required(login_url='login')
+@require_role('TeamLead')
 def reports(request):
-    if request.user.role != 'TeamLead':
-        return redirect('systemengineer_dashboard')
-
     requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
     context = {'requests': requests_list}
     return render(request, 'reports.html', context)
 
 
-@login_required(login_url='login')
+@require_role('TeamLead')
 def export_requests_excel(request):
     requests_list = TechRefreshRequest.objects.all().values(
         'engineer__username', 'location', 'user', 'status', 'submitted_at'
@@ -483,7 +536,7 @@ def export_requests_excel(request):
     return response
 
 
-@login_required(login_url='login')
+@require_role('TeamLead')
 def export_requests_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="requests_report.pdf"'
@@ -514,7 +567,8 @@ def export_requests_pdf(request):
     response.write(pdf)
     return response
 
-#MAINTENANCE LOGS
+
+# MAINTENANCE LOGS
 @login_required
 def maintenance_logs(request):
     logs = [
@@ -523,10 +577,10 @@ def maintenance_logs(request):
     ]
     return render(request, 'maintenance_logs.html', {'logs': logs})
 
-#ASSIGNED ITEMS
+
+# ASSIGNED ITEMS
 @login_required(login_url='login')
 def assigned_items(request):
-    # Mock data untuk test
     items = [
         {'name': 'Laptop Dell', 'status': 'In Use'},
         {'name': 'Mouse HP', 'status': 'Returned'},
@@ -534,23 +588,19 @@ def assigned_items(request):
     return render(request, 'assigned_items.html', {'items': items})
 
 
-#send feedback
+# send feedback (SystemEngineer)
 @login_required(login_url='login')
 def send_feedback(request):
     if request.method == 'POST':
         message = request.POST.get('message')
-        # Simpan mesej atau hantar email / CloudDB dsb ikut keperluan
-        # Buat sementara kita cuma bagi success message
         messages.success(request, "Feedback submitted successfully!")
         return redirect('systemengineer_dashboard')
-    
     return render(request, 'send_feedback.html')
 
 
-#NOTIFICATIONS
+# NOTIFICATIONS
 @login_required
 def notifications_view(request):
-    # Ambil semua notifikasi milik user yang login
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'notifications.html', {'notifications': notifications})
 
@@ -562,4 +612,12 @@ def mark_as_read(request, notification_id):
     notification.save()
     return redirect('notifications')
 
+@login_required
+def view_request_details(request, req_id):
+    request_obj = get_object_or_404(TechRefreshRequest, id=req_id)
 
+    context = {
+        'request_obj': request_obj,
+    }
+
+    return render(request, 'view_request_details.html', context)
