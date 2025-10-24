@@ -98,53 +98,58 @@ def systemengineer_dashboard(request):
 # ----------------------------
 @login_required(login_url='login')
 def create_task(request):
-    # Ambil semua Team Lead untuk pilih approver
     teamleads = User.objects.filter(role='TeamLead')
-    
+
     if request.method == 'POST':
         task_type = request.POST.get('task_type')
-        location = request.POST.get('location')
+        engineer_name = request.POST.get('engineer_name')
         user_name = request.POST.get('user_name')
-        old_barcode = request.POST.get('old_barcode')
-        new_barcode = request.POST.get('new_barcode')
-        old_serial = request.POST.get('old_serial')
-        new_serial = request.POST.get('new_serial')
-        old_ip = request.POST.get('old_ip')
-        new_ip = request.POST.get('new_ip')
-        new_mac = request.POST.get('new_mac')
+        location = request.POST.get('location')
+        old_hostname = request.POST.get('old_hostname')
+        new_hostname = request.POST.get('new_hostname')
+        old_serial = request.POST.get('old_serial_number')
+        new_serial = request.POST.get('new_serial_number')
+        status = request.POST.get('status')
+        rescheduled_date = request.POST.get('date_if_rescheduled')
+        format_status = request.POST.get('format_status')
+        reason_not_formatted = request.POST.get('reason_not_formatted')
+        upload_status = request.POST.get('upload_status')
+        reason_not_uploaded = request.POST.get('reason_not_uploaded')
         remarks = request.POST.get('remarks')
-        approver_id = request.POST.get('assigned_approver')
         proof = request.FILES.get('proof')
+        approver_id = request.POST.get('assigned_approver')
 
         assigned_approver = None
         if approver_id:
             assigned_approver = User.objects.get(id=approver_id)
 
-        # Buat Request baru
+        # ✅ Save into Request model
         Request.objects.create(
             engineer=request.user,
             type=task_type,
             location=location,
             user=user_name,
-            old_barcode=old_barcode,
-            new_barcode=new_barcode,
+            old_hostname=old_hostname,
+            new_hostname=new_hostname,
             old_serial=old_serial,
             new_serial=new_serial,
-            old_ip=old_ip,
-            new_ip=new_ip,
-            new_mac=new_mac,
+            status=status or 'Pending',
+            rescheduled_date=rescheduled_date or None,
+            format_status=format_status,
+            reason_not_formatted=reason_not_formatted,
+            upload_status=upload_status or 'Not Yet',
+            reason_not_uploaded=reason_not_uploaded,
             remarks=remarks,
             proof=proof,
             assigned_approver=assigned_approver
         )
 
-        messages.success(request, "Task submitted successfully!")
+        messages.success(request, "✅ Task submitted successfully!")
         return redirect('systemengineer_dashboard')
 
-    context = {
-        'teamleads': teamleads
-    }
+    context = {'teamleads': teamleads}
     return render(request, 'create_task.html', context)
+
 
 # ----------------------------
 # 📝 My Submissions
