@@ -2,36 +2,210 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>System Engineer Dashboard</title>
+    <title>System Engineer Dashboard - Beyond2U</title>
     <style>
-        * {margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
-        body {display: flex; min-height: 100vh; background-color: #f5f7fb;}
-        .sidebar {width: 230px; background-color: #004aad; color: #fff; display: flex; flex-direction: column; padding: 30px 20px;}
-        .sidebar h2 {font-size: 22px; margin-bottom: 30px;}
-        .menu a {display: block; padding: 12px 15px; color: #fff; text-decoration: none; border-radius: 6px; margin-bottom: 10px; transition: 0.3s;}
-        .menu a:hover {background-color: #003080;}
-        .content {flex: 1; padding: 40px;}
-        h1 {color: #004aad; margin-bottom: 20px;}
-        .logout-btn {margin-top: auto; padding: 10px; text-align: center; background: #d9534f; color: #fff; border-radius: 6px; text-decoration: none;}
-        .logout-btn:hover {background: #c9302c;}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fb, #e8f0ff);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #004aad, #007bff);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 24px;
+            margin-bottom: 35px;
+            text-align: center;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        .menu a {
+            display: block;
+            padding: 12px 15px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .menu a:hover {
+            background: linear-gradient(90deg, #ffc107, #ffdb4d);
+            color: #003080;
+            transform: translateX(4px);
+        }
+
+        /* Content */
+        .content {
+            flex: 1;
+            padding: 50px 60px;
+        }
+
+        h1 {
+            color: #004aad;
+            margin-bottom: 15px;
+            font-size: 30px;
+        }
+
+        .welcome-box {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .welcome-box p {
+            font-size: 17px;
+            color: #333;
+        }
+
+        .highlight {
+            color: #004aad;
+            font-weight: bold;
+        }
+
+        /* Cards */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+        }
+
+        .card h3 {
+            color: #004aad;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 16px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        /* Buttons */
+        .buttons {
+            margin-top: 40px;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #004aad, #007bff);
+            color: #fff;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: linear-gradient(90deg, #ffc107, #ffdb4d);
+            color: #003080;
+            transform: translateY(-2px);
+        }
+
+        /* Logout button */
+        .logout-btn {
+            margin-top: auto;
+            text-align: center;
+            padding: 10px 0;
+            background: linear-gradient(90deg, #ff4b5c, #ff6b81);
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(90deg, #ff6b81, #ff8c94);
+            transform: scale(1.03);
+        }
     </style>
 </head>
 <body>
+
+    <!-- Sidebar -->
     <div class="sidebar">
         <h2>Beyond2U</h2>
         <div class="menu">
-            <a href="#">➤ Dashboard Home</a>
-            <a href="{% url 'add-tech-refresh' %}">➤ Tech Refresh Form</a>
-            <a href="{% url 'tech-refresh-list' %}">➤ My Submissions</a>
-            <a href="#">➤ Notifications</a>
+            <a href="#">🏠 Dashboard Home</a>
+            <a href="{% url 'add-tech-refresh' %}">🧠 Tech Refresh Form</a>
+            <a href="{% url 'tech-refresh-list' %}">📄 My Submissions</a>
+            <a href="#">🔔 Notifications</a>
         </div>
-        <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        <a href="{% url 'logout' %}" class="logout-btn">🚪 Logout</a>
     </div>
 
+    <!-- Content -->
     <div class="content">
-        <h1>Welcome, {{ request.user.username }}</h1>
-        <p>You are logged in as <b>{{ request.user.get_role_display }}</b>.</p>
-        <p style="margin-top:10px;">Start by submitting a new Tech Refresh form or checking your submissions.</p>
+        <div class="welcome-box">
+            <h1>Welcome, <span class="highlight">{{ request.user.username|title }}</span> 👋</h1>
+            <p>You are logged in as <span class="highlight">{{ request.user.get_role_display }}</span> at Beyond2U.</p>
+            <p style="margin-top: 10px;">Start your day by checking your tasks or submitting a new Tech Refresh request 💼</p>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>My Total Requests</h3>
+                <p>{{ total_requests }}</p>
+            </div>
+            <div class="card">
+                <h3>Pending Approvals</h3>
+                <p>{{ pending_approvals }}</p>
+            </div>
+            <div class="card">
+                <h3>Approved Requests</h3>
+                <p>{{ approved_requests }}</p>
+            </div>
+            <div class="card">
+                <h3>Rejected Requests</h3>
+                <p>{{ rejected_requests }}</p>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <a href="{% url 'add-tech-refresh' %}" class="btn">+ Submit Tech Refresh</a>
+            <a href="{% url 'tech-refresh-list' %}" class="btn">View My Submissions</a>
+        </div>
     </div>
+
 </body>
 </html>
