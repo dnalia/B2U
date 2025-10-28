@@ -4,101 +4,137 @@
 {% block title %}Reports - Beyond2U{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center mb-4 fw-bold text-primary">Reports Overview</h2>
+<style>
+/* Page Container */
+.reports-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
 
-    <!-- Summary Cards -->
-    <div class="row text-center mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body">
-                    <h5>Total Engineers</h5>
-                    <h3 class="text-primary">{{ total_engineers }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body">
-                    <h5>Total Requests</h5>
-                    <h3 class="text-secondary">{{ total_requests }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body">
-                    <h5>Pending</h5>
-                    <h3 class="text-warning">{{ pending }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-body">
-                    <h5>Completed</h5>
-                    <h3 class="text-success">{{ completed }}</h3>
-                </div>
-            </div>
-        </div>
+/* Section Title */
+.reports-title {
+  font-weight: 700;
+  color: #004aad;
+  text-align: left; /* align to left */
+  margin-bottom: 35px;
+  letter-spacing: 0.5px;
+  margin-left: 5px; /* move slightly to the left */
+}
+
+/* Table Section */
+.table-wrapper {
+  background-color: transparent; /* No box */
+  box-shadow: none;
+  border: none;
+  padding: 0;
+}
+
+/* Table */
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 74, 173, 0.08);
+}
+
+.table thead th {
+  background-color: #004aad;
+  color: white;
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  padding: 14px;
+}
+
+.table tbody td {
+  padding: 12px 14px;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background-color: #f6faff;
+}
+
+/* Export Buttons */
+.export-buttons .btn {
+  border-radius: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  transition: all 0.2s ease;
+}
+.export-buttons .btn-danger:hover {
+  background-color: #c9302c;
+}
+.export-buttons .btn-success:hover {
+  background-color: #218838;
+}
+</style>
+
+<div class="reports-container">
+  <h2 class="reports-title">Reports Overview</h2>
+
+
+  <br>
+  <br>
+
+  <div class="table-wrapper mt-4">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Num</th>
+            <th>Engineer Name</th>
+            <th>Request Type</th>
+            <th>Date Submitted</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in reports %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ req.engineer_name }}</td>
+            <td>{{ req.request_type }}</td>
+            <td>{{ req.date_submitted|date:"d M Y" }}</td>
+            <td>
+              {% if req.status == 'Approved' %}
+                <span class="badge bg-success">Approved</span>
+              {% elif req.status == 'Pending' %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% else %}
+                <span class="badge bg-danger">Rejected</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'report_details' req.id %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                View Details
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted">No approved requests found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
 
-    <!-- Report Table -->
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="fw-semibold text-dark">Approved Requests</h4>
-                <div>
-                    <a href="#" class="btn btn-danger btn-sm me-2">
-                        <i class="bi bi-file-earmark-pdf"></i> Export PDF
-                    </a>
-                    <a href="#" class="btn btn-success btn-sm">
-                        <i class="bi bi-file-earmark-excel"></i> Export Excel
-                    </a>
-                </div>
-            </div>
+    <br>
+    <br>
 
-            <table class="table table-striped align-middle">
-                <thead class="table-primary">
-                    <tr>
-                        <th>#</th>
-                        <th>Engineer Name</th>
-                        <th>Request Type</th>
-                        <th>Date Submitted</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for req in reports %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ req.engineer_name }}</td>
-                        <td>{{ req.request_type }}</td>
-                        <td>{{ req.date_submitted|date:"d M Y" }}</td>
-                        <td>
-                            {% if req.status == 'Approved' %}
-                                <span class="badge bg-success">Approved</span>
-                            {% elif req.status == 'Pending' %}
-                                <span class="badge bg-warning text-dark">Pending</span>
-                            {% else %}
-                                <span class="badge bg-danger">Rejected</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{% url 'report_details' req.id %}" class="btn btn-outline-primary btn-sm">
-                                View Details
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">No approved requests found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="export-buttons">
+      <a href="#" class="btn btn-danger btn-sm me-2">
+        <i class="bi bi-file-earmark-pdf"></i> Export PDF
+      </a>
     </div>
+  </div>
+
+  </div>
 </div>
 {% endblock %}

@@ -1,136 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Beyond2U{% endblock %}</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Poppins', 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #fefcf9, #f4f6fa);
-            color: #333;
-        }
+  <meta charset="UTF-8">
+  <title>{% block title %}Beyond2U{% endblock %}</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #2d2d2d;
+    }
 
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 230px;
-            height: 100%;
-            background: linear-gradient(180deg, #0057b7, #004aad);
-            color: white;
-            padding: 25px 20px;
-            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
-        }
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #004aad, #5c9eff);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 30px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+      border-top-right-radius: 25px;
+      border-bottom-right-radius: 25px;
+    }
 
-        .sidebar h2 {
-            text-align: center;
-            margin-bottom: 50px;
-            font-weight: 700;
-            font-size: 22px;
-            letter-spacing: 1px;
-        }
+    .sidebar h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffeb70;
+      margin-bottom: 50px;
+      letter-spacing: 1px;
+    }
 
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: white;
-            text-decoration: none;
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-size: 15px;
-        }
+    .sidebar a {
+      display: block;
+      width: 80%;
+      text-align: center;
+      color: white;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px 10px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
 
-        .sidebar a:hover {
-            background-color: #ffce31;
-            color: #004aad;
-            transform: translateX(5px);
-        }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background: #ffda47;
+      color: #004aad;
+      font-weight: 600;
+      transform: translateY(-3px);
+    }
 
-        /* Highlight current link (optional) */
-        .sidebar a.active {
-            background-color: #ffce31;
-            color: #004aad;
-        }
+    /* Content */
+    .content {
+      margin-left: 260px;
+      padding: 40px;
+      min-height: 100vh;
+    }
 
-        /* Content */
-        .content {
-            margin-left: 250px;
-            padding: 40px 50px;
-            min-height: 100vh;
-        }
+    /* Page Header */
+    .topbar {
+      background-color: #ffda47;
+      color: #004aad;
+      padding: 15px 25px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      display: inline-block;
+      margin-bottom: 30px;
+    }
 
-        /* Cute yellow header bar */
-        .topbar {
-            background-color: #ffce31;
-            padding: 15px 30px;
-            border-radius: 12px;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-            font-weight: 600;
-            font-size: 18px;
-            color: #004aad;
-            display: inline-block;
-            margin-bottom: 25px;
-        }
+    /* Page content box */
+    /* .box {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 6px 20px rgba(0, 84, 200, 0.1);
+      border: 2px solid #e0ecff;
+      animation: fadeIn 0.5s ease;
+    } */
 
-        /* Buttons style for future usage */
-        .btn {
-            background-color: #004aad;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: 0.3s;
-            cursor: pointer;
-        }
+    /* Buttons */
+    .btn {
+      background-color: #004aad;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-block;
+      font-size: 14px;
+    }
 
-        .btn:hover {
-            background-color: #ffce31;
-            color: #004aad;
-        }
+    .btn:hover {
+      background-color: #003080;
+      transform: translateY(-2px);
+    }
 
-        /* Soft content box style */
-        .box {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            padding: 30px;
-            margin-top: 20px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
 
-<div class="sidebar">
-    <h2>💙 Beyond2U</h2>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Beyond2U</h2>
     <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
     <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
     <a href="{% url 'manage_requests' %}">📋 Manage Requests</a>
+    <a href="{% url 'assign_task' %}">🧰 Assign Task</a>
     <a href="{% url 'reports' %}">📊 Reports</a>
     <a href="{% url 'logout' %}">🚪 Logout</a>
-</div>
+  </div>
 
-<div class="content">
-    <div class="topbar">Welcome to Beyond2U Team Lead Panel 💛</div>
-    
+  <!-- Main Content -->
+  <div class="content">
+
+
     <div class="box">
-        {% block content %}
-        {% endblock %}
+      {% block content %}
+      {% endblock %}
     </div>
-</div>
+  </div>
 
 </body>
 </html>

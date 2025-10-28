@@ -673,10 +673,24 @@ def mark_as_read(request, notification_id):
 
 @login_required
 def view_request_details(request, req_id):
-    request_obj = get_object_or_404(TechRefreshRequest, id=req_id)
+    # Try to find in Request first
+    request_obj = Request.objects.filter(id=req_id).first()
+    request_type = "Request"
+
+    # If not found, try TechRefreshRequest
+    if not request_obj:
+        request_obj = TechRefreshRequest.objects.filter(id=req_id).first()
+        request_type = "TechRefreshRequest"
+
+    # If still not found, return error
+    if not request_obj:
+        messages.error(request, "Request not found.")
+        return redirect('manage_requests')
 
     context = {
         'request_obj': request_obj,
+        'request_type': request_type,
     }
 
     return render(request, 'view_request_details.html', context)
+

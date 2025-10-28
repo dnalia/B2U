@@ -1,270 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>System Engineer Dashboard - Beyond2U</title>
-    <style>
-        /* ===== Global Reset ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', 'Segoe UI', sans-serif;
-        }
+  <meta charset="UTF-8">
+  <title>System Engineer Dashboard - Beyond2U</title>
+  <style>
+    /* ===== Global Reset ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+    }
 
-        body {
-            background: linear-gradient(135deg, #eaf2ff, #fff8e1);
-            color: #333;
-            display: flex;
-            min-height: 100vh;
-        }
+    body {
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #333;
+      display: flex;
+      min-height: 100vh;
+    }
 
-        /* ===== Sidebar ===== */
-        .sidebar {
-            width: 250px;
-            background: linear-gradient(180deg, #004aad, #007bff);
-            color: white;
-            padding: 35px 20px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
-            border-top-right-radius: 18px;
-            border-bottom-right-radius: 18px;
-        }
+    /* ===== Sidebar ===== */
+    .sidebar {
+      width: 230px;
+      background: linear-gradient(180deg, #004aad, #5c9eff);
+      color: white;
+      padding: 35px 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 4px 0 18px rgba(0, 0, 0, 0.1);
+      border-top-right-radius: 22px;
+      border-bottom-right-radius: 22px;
+    }
 
-        .sidebar h2 {
-            font-size: 26px;
-            text-align: center;
-            margin-bottom: 40px;
-            color: #ffdb4d;
-            text-shadow: 0 0 6px rgba(255,255,255,0.4);
-        }
+    .sidebar h2 {
+      font-size: 26px;
+      text-align: center;
+      margin-bottom: 40px;
+      color: #ffeb70;
+      text-shadow: 0 0 6px rgba(255,255,255,0.3);
+    }
 
-        .sidebar a {
-            display: block;
-            color: #fff;
-            text-decoration: none;
-            padding: 12px 15px;
-            margin-bottom: 12px;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 15px;
+      margin-bottom: 12px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.15);
+    }
 
-        .sidebar a:hover {
-            background: linear-gradient(90deg, #ffdb4d, #ffd740);
-            color: #003080;
-            transform: translateX(6px);
-        }
+    .sidebar a:hover {
+      background: #ffda47;
+      color: #004aad;
+      font-weight: 600;
+      transform: translateY(-3px);
+    }
 
-        /* ===== Content ===== */
-        .content {
-            flex: 1;
-            padding: 50px 60px;
-            animation: fadeIn 0.7s ease-in-out;
-        }
+    /* ===== Content ===== */
+    .content {
+      flex: 1;
+      padding: 50px 60px;
+      animation: fadeIn 0.7s ease-in-out;
+    }
 
-        @keyframes fadeIn {
-            from {opacity: 0; transform: translateY(10px);}
-            to {opacity: 1; transform: translateY(0);}
-        }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
 
-        h1 {
-            color: #004aad;
-            font-size: 32px;
-            margin-bottom: 20px;
-        }
+    h1 {
+      color: #004aad;
+      font-size: 32px;
+      margin-bottom: 25px;
+    }
 
-        h2 {
-            color: #004aad;
-            margin-top: 40px;
-            margin-bottom: 15px;
-            font-size: 22px;
-        }
+    h2 {
+      color: #004aad;
+      margin-top: 40px;
+      margin-bottom: 15px;
+      font-size: 22px;
+    }
 
-        /* ===== Task Overview ===== */
-        .overview {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 35px;
-        }
+    /* ===== Task Overview ===== */
+    .overview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 35px;
+    }
 
-        .card {
-            background: #fff;
-            padding: 25px;
-            border-radius: 16px;
-            flex: 1;
-            min-width: 220px;
-            text-align: center;
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
+    .card {
+      background: #fff;
+      width: 200px; /* square shape */
+      height: 200px; /* square shape */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-radius: 18px;
+      box-shadow: 0 6px 15px rgba(0, 84, 200, 0.1);
+      transition: all 0.3s ease;
+      border: 2px solid #e0ecff;
+    }
 
-        .card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-        }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 25px rgba(0, 84, 200, 0.15);
+    }
 
-        .card::before {
-            content: "";
-            position: absolute;
-            top: -25%;
-            right: -25%;
-            width: 180px;
-            height: 180px;
-            background: radial-gradient(circle, #ffec99 0%, transparent 70%);
-            opacity: 0.5;
-            z-index: 0;
-        }
+    .card h3 {
+      color: #004aad;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
 
-        .card h3 {
-            color: #004aad;
-            font-size: 18px;
-            position: relative;
-            z-index: 1;
-        }
+    .card p {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffb300;
+    }
 
-        .card p {
-            font-size: 22px;
-            font-weight: bold;
-            margin-top: 10px;
-            color: #333;
-            position: relative;
-            z-index: 1;
-        }
+    /* ===== Table ===== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
 
-        /* ===== Table ===== */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+    th, td {
+      padding: 14px 18px;
+      text-align: left;
+    }
 
-        th, td {
-            padding: 14px 18px;
-            text-align: left;
-        }
+    th {
+      background: #004aad; /* solid blue color */
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+    }
 
-        th {
-            background: linear-gradient(90deg, #004aad, #007bff);
-            color: #fff;
-            font-weight: 600;
-        }
+    tr:nth-child(even) {
+      background-color: #f7faff;
+    }
 
-        tr:nth-child(even) {
-            background-color: #f2f5ff;
-        }
+    tr:hover {
+      background-color: #fffae6;
+    }
 
-        tr:hover {
-            background-color: #fffae6;
-        }
+    /* ===== Buttons ===== */
+    a.button {
+      display: inline-block;
+      background-color: #004aad;
+      color: #fff;
+      padding: 10px 22px;
+      margin-top: 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
 
-        /* ===== Buttons ===== */
-        a.button {
-            display: inline-block;
-            background: linear-gradient(90deg, #004aad, #007bff);
-            color: #fff;
-            padding: 10px 22px;
-            margin-top: 20px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+    a.button:hover {
+      background-color: #003080;
+      transform: translateY(-2px);
+    }
 
-        a.button:hover {
-            background: linear-gradient(90deg, #ffdb4d, #ffd740);
-            color: #003080;
-            transform: translateY(-2px);
-        }
+    a.update-status {
+      background-color: #ffb300;
+      padding: 6px 12px;
+      border-radius: 8px;
+      color: #003080;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
 
-        a.update-status {
-            background: linear-gradient(90deg, #ffb300, #ffca28);
-            padding: 6px 12px;
-            border-radius: 8px;
-            color: #003080;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-
-        a.update-status:hover {
-            background: linear-gradient(90deg, #ffd740, #ffe082);
-            transform: scale(1.05);
-        }
-    </style>
+    a.update-status:hover {
+      background-color: #ffd740;
+      transform: scale(1.05);
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h2>Beyond2U</h2>
-        <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
-        <a href="{% url 'create_task' %}">➕ Create Task</a>
-        <a href="{% url 'my_submissions' %}">📄 My Submissions</a>
-        <a href="{% url 'notifications' %}">🔔 Notifications</a>
-        <a href="{% url 'logout' %}">🚪 Logout</a>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'create_task' %}">➕ Create Task</a>
+    <a href="{% url 'my_submissions' %}">📄 My Submissions</a>
+    <a href="{% url 'notifications' %}">🔔 Notifications</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <h1>Welcome, {{ request.user.username|title }} 👋</h1>
+
+    <!-- Task Overview -->
+    <h2>Task Overview</h2>
+    <div class="overview">
+      <div class="card">
+        <h3>Pending</h3>
+        <p>{{ pending_count }}</p>
+      </div>
+      <div class="card">
+        <h3>Approved</h3>
+        <p>{{ approved_count }}</p>
+      </div>
+      <div class="card">
+        <h3>Rejected</h3>
+        <p>{{ rejected_count }}</p>
+      </div>
     </div>
 
-    <!-- Content -->
-    <div class="content">
-        <h1>Welcome, {{ request.user.username|title }} 👋</h1>
+    <a href="{% url 'create_task' %}" class="button">+ Create New Task</a>
 
-        <!-- Task Overview -->
-        <h2>Task Overview</h2>
-        <div class="overview">
-            <div class="card">
-                <h3>Pending</h3>
-                <p>{{ pending_count }}</p>
-            </div>
-            <div class="card">
-                <h3>Approved</h3>
-                <p>{{ approved_count }}</p>
-            </div>
-            <div class="card">
-                <h3>Rejected</h3>
-                <p>{{ rejected_count }}</p>
-            </div>
-        </div>
-        <a href="{% url 'create_task' %}" class="button">+ Create New Task</a>
+    <!-- Assigned Inventory -->
+    <!--<h2>My Assigned Inventory</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Category</th>
+          <th>Quantity</th>
+          <th>Condition</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in assigned_items %}
+        <tr>
+          <td>{{ item.item_name }}</td>
+          <td>{{ item.category }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ item.condition }}</td>
+          <td><a href="{% url 'update_status' item.pk %}" class="update-status">Update Status</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center; padding:20px;">No items assigned yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table> -->
 
-        <!-- Assigned Inventory -->
-        <h2>My Assigned Inventory</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Item Name</th>
-                    <th>Category</th>
-                    <th>Quantity</th>
-                    <th>Condition</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in assigned_items %}
-                <tr>
-                    <td>{{ item.item_name }}</td>
-                    <td>{{ item.category }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>{{ item.condition }}</td>
-                    <td>
-                        <a href="{% url 'update_status' item.pk %}" class="update-status">Update Status</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <a href="{% url 'my_submissions' %}" class="button">View My Submissions</a>
-        <a href="{% url 'notifications' %}" class="button">Notifications</a>
-    </div>
+    <a href="{% url 'my_submissions' %}" class="button">View My Submissions</a>
+    <a href="{% url 'notifications' %}" class="button">Notifications</a>
+  </div>
 
 </body>
 </html>

@@ -4,140 +4,323 @@
   <meta charset="UTF-8">
   <title>Manage Requests - Beyond2U</title>
   <style>
-    body { margin:0; font-family:'Segoe UI', sans-serif; background-color:#eef2f7; display:flex; }
-    .sidebar { position:fixed; left:0; top:0; width:230px; height:100vh; background:linear-gradient(180deg,#004aad,#00337a); color:white; display:flex; flex-direction:column; padding:25px 20px; box-shadow:3px 0 10px rgba(0,0,0,0.1);}
-    .sidebar h2 { font-size:22px; text-align:center; margin-bottom:40px; letter-spacing:1px; }
-    .sidebar a { color:white; text-decoration:none; padding:12px 15px; border-radius:10px; margin-bottom:8px; transition: background 0.3s, transform 0.2s; font-size:15px; }
-    .sidebar a:hover { background-color:#005ee0; transform:translateX(5px); }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #2d2d2d;
+    }
 
-    .content { margin-left:250px; padding:40px; flex:1; }
-    h1 { color:#003c8f; font-size:28px; margin-bottom:25px; font-weight:600; }
-    form { display:flex; align-items:center; gap:10px; margin-bottom:25px; }
-    input[type="text"], select { padding:8px 12px; border:1px solid #ccc; border-radius:8px; font-size:14px; outline:none; transition:border-color 0.3s;}
-    input[type="text"]:focus, select:focus { border-color:#004aad; }
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100vh;
+      background: linear-gradient(180deg, #004aad, #5c9eff);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 30px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+      border-top-right-radius: 25px;
+      border-bottom-right-radius: 25px;
+    }
 
-    .btn-primary { background-color:#004aad; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:500; transition: background 0.3s; }
-    .btn-primary:hover { background-color:#003580; }
+    .sidebar h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffeb70;
+      margin-bottom: 50px;
+      letter-spacing: 1px;
+    }
 
-    table { width:100%; border-collapse:collapse; background-color:white; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.05); }
-    th, td { padding:14px 16px; text-align:left; border-bottom:1px solid #f0f0f0; font-size:15px; }
-    th { background-color:#004aad; color:white; text-transform:uppercase; font-weight:600; letter-spacing:0.5px; }
-    tr:hover { background-color:#f6faff; }
+    .sidebar a {
+      display: block;
+      width: 80%;
+      text-align: center;
+      color: white;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px 10px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
 
-    .status-pending { color:#f0ad4e; font-weight:bold; }
-    .status-approved { color:#28a745; font-weight:bold; }
-    .status-rejected { color:#dc3545; font-weight:bold; }
+    .sidebar a:hover {
+      background: #ffda47;
+      color: #004aad;
+      font-weight: 600;
+      transform: translateY(-3px);
+    }
 
-    .btn { padding:6px 12px; border-radius:6px; text-decoration:none; color:white; font-size:14px; margin-right:5px; transition: background 0.3s; cursor:pointer; }
-    .approve-btn { background-color:#28a745; } .approve-btn:hover { background-color:#218838; }
-    .reject-btn { background-color:#dc3545; } .reject-btn:hover { background-color:#c82333; }
-    .view-btn { background-color:#0275d8; } .view-btn:hover { background-color:#0256a3; }
+    /* Content */
+    .content {
+      margin-left: 260px;
+      padding: 40px;
+    }
 
-    td a { font-weight:500; } td span { color:#666; font-style:italic; }
+    h1 {
+      color: #004aad;
+      font-size: 30px;
+      font-weight: 700;
+      margin-bottom: 25px;
+    }
 
-    /* Popup styles */
-    .popup { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000; }
-    .popup-content { background:white; padding:20px; border-radius:10px; max-width:500px; width:90%; position:relative; max-height:90%; overflow-y:auto; }
-    .close-btn { position:absolute; top:10px; right:15px; cursor:pointer; font-size:22px; }
+    /* Filter Form */
+    form {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"], select {
+      padding: 10px 14px;
+      border: 1px solid #cfd9e7;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: 0.3s;
+      background-color: white;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: #004aad;
+      box-shadow: 0 0 8px rgba(0, 74, 173, 0.2);
+    }
+
+    .btn-primary {
+      background-color: #004aad;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #003580;
+      transform: translateY(-2px);
+    }
+
+    
+
+    /* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 84, 200, 0.08);
+}
+
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 15px;
+}
+
+th {
+  background-color: #004aad; /* 🔵 solid color instead of gradient */
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+tr:hover {
+  background-color: #f6faff;
+}
+
+
+    /* Status */
+    .status-pending { color: #ffb300; font-weight: 600; }
+    .status-approved { color: #28a745; font-weight: 600; }
+    .status-rejected { color: #dc3545; font-weight: 600; }
+
+    /* Buttons */
+    .btn {
+      padding: 7px 13px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      transition: 0.3s;
+      margin-right: 6px;
+      display: inline-block;
+    }
+
+    .view-btn { background-color: #007bff; }
+    .view-btn:hover { background-color: #0062cc; }
+
+    .approve-btn { background-color: #28a745; }
+    .approve-btn:hover { background-color: #1e7e34; }
+
+    .reject-btn { background-color: #dc3545; }
+    .reject-btn:hover { background-color: #b21f2d; }
+
+    /* Popup */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .popup-content {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 16px;
+      max-width: 550px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      animation: popupFade 0.3s ease;
+    }
+
+    .popup-content h2 {
+      color: #004aad;
+      margin-bottom: 15px;
+    }
+
+    @keyframes popupFade {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 18px;
+      font-size: 22px;
+      color: #888;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .close-btn:hover {
+      color: #004aad;
+    }
   </style>
 </head>
 <body>
 
-<div class="sidebar">
-  <h2>Beyond2U</h2>
-  <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
-  <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
-  <a href="{% url 'manage_requests' %}">📥 Manage Requests</a>
-  <a href="{% url 'reports' %}">📊 Reports</a>
-  <a href="{% url 'logout' %}">🚪 Logout</a>
-</div>
-
-<div class="content">
-  <h1>Manage Requests</h1>
-
-  <form method="GET">
-    <input type="text" name="search" placeholder="🔍 Search by name or location" value="{{ search_query }}">
-    <select name="status">
-      <option value="all" {% if status_filter == 'all' or not status_filter %}selected{% endif %}>All</option>
-      <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
-      <option value="Approved" {% if status_filter == 'Approved' %}selected{% endif %}>Approved</option>
-      <option value="Rejected" {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
-    </select>
-    <button type="submit" class="btn-primary">Filter</button>
-  </form>
-
-  <table>
-    <thead>
-      <tr>
-        <th>#</th><th>Engineer</th><th>Location</th><th>User</th>
-        <th>Status</th><th>Submitted At</th><th>Proof</th><th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for req in requests %}
-      <tr>
-        <td>{{ forloop.counter }}</td>
-        <td>{{ req.engineer.username|default:"-" }}</td>
-        <td>{{ req.location|default:"-" }}</td>
-        <td>{{ req.user|default:"-" }}</td>
-        <td class="status-{{ req.status|lower }}">{{ req.status|default:"-" }}</td>
-        <td>{{ req.submitted_at|default:"-"|date:"Y-m-d H:i" }}</td>
-        <td>{% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View</a>{% else %}N/A{% endif %}</td>
-        <td>
-          <button class="btn view-btn" onclick="openPopup('req-{{ req.id }}')">View</button>
-          {% if req.status == "Pending" %}
-            <a href="{% url 'approve_request' req.id %}" class="btn approve-btn">Approve</a>
-            <a href="{% url 'reject_request' req.id %}" class="btn reject-btn">Reject</a>
-          {% else %}
-            <span>—</span>
-          {% endif %}
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="8" style="text-align:center;">No requests found.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-<!-- Popups for request details -->
-{% for req in requests %}
-<div id="popup-req-{{ req.id }}" class="popup">
-  <div class="popup-content">
-    <span class="close-btn" onclick="closePopup('req-{{ req.id }}')">&times;</span>
-    <h2>Request Details</h2>
-    <p><strong>Engineer:</strong> {{ req.engineer.username|default:"-" }}</p>
-    <p><strong>User:</strong> {{ req.user|default:"-" }}</p>
-    <p><strong>Location:</strong> {{ req.location|default:"-" }}</p>
-    <p><strong>Status:</strong> {{ req.status|default:"-" }}</p>
-    <p><strong>Submitted At:</strong> {{ req.submitted_at|default:"-"|date:"Y-m-d H:i" }}</p>
-    <p><strong>Old Hostname:</strong> {{ req.old_hostname|default:"-" }}</p>
-    <p><strong>New Hostname:</strong> {{ req.new_hostname|default:"-" }}</p>
-    <p><strong>Old Serial Number:</strong> {{ req.old_serial|default:"-" }}</p>
-    <p><strong>New Serial Number:</strong> {{ req.new_serial|default:"-" }}</p>
-    <p><strong>Rescheduled Date:</strong> {{ req.rescheduled_date|default:"-" }}</p>
-    <p><strong>Format Status:</strong> {{ req.format_status|default:"-" }}</p>
-    <p><strong>Reason (if not formatted):</strong> {{ req.reason_not_formatted|default:"-" }}</p>
-    <p><strong>Upload Status:</strong> {{ req.upload_status|default:"Not Yet" }}</p>
-    <p><strong>Reason (if not uploaded):</strong> {{ req.reason_not_uploaded|default:"-" }}</p>
-    <p><strong>Remarks:</strong> {{ req.remarks|default:"-" }}</p>
-    <p><strong>Proof:</strong>
-      {% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View Uploaded Proof</a>{% else %}N/A{% endif %}
-    </p>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
+    <a href="{% url 'manage_requests' %}">📥 Manage Requests</a>
+    <a href="{% url 'assign_task' %}">🧰 Assign Task</a>
+    <a href="{% url 'reports' %}">📊 Reports</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
   </div>
-</div>
-{% endfor %}
 
-<script>
-function openPopup(id) {
-  document.getElementById('popup-' + id).style.display = 'flex';
-}
-function closePopup(id) {
-  document.getElementById('popup-' + id).style.display = 'none';
-}
-</script>
+  <!-- Main Content -->
+  <div class="content">
+    <h1>Manage Requests</h1>
+
+    <!-- Filter Form -->
+    <form method="GET">
+      <input type="text" name="search" placeholder="🔍 Search by name or location" value="{{ search_query }}">
+      <select name="status">
+        <option value="all" {% if status_filter == 'all' or not status_filter %}selected{% endif %}>All</option>
+        <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+        <option value="Approved" {% if status_filter == 'Approved' %}selected{% endif %}>Approved</option>
+        <option value="Rejected" {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
+      </select>
+      <button type="submit" class="btn-primary">Filter</button>
+    </form>
+
+    <!-- Requests Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>Num</th>
+          <th>Engineer</th>
+          <th>Location</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Submitted At</th>
+          <th>Proof</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ req.engineer.username|default:"-" }}</td>
+          <td>{{ req.location|default:"-" }}</td>
+          <td>{{ req.user|default:"-" }}</td>
+          <td class="status-{{ req.status|lower }}">{{ req.status|default:"-" }}</td>
+          <td>{{ req.submitted_at|date:"Y-m-d H:i" }}</td>
+          <td>{% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View</a>{% else %}N/A{% endif %}</td>
+          <td>
+            <button class="btn view-btn" onclick="openPopup('req-{{ req.id }}')">View</button>
+            {% if req.status == "Pending" %}
+              <a href="{% url 'approve_request' req.id %}" class="btn approve-btn">Approve</a>
+              <a href="{% url 'reject_request' req.id %}" class="btn reject-btn">Reject</a>
+            {% else %}
+              <span>—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center;">No requests found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Popups -->
+  {% for req in requests %}
+  <div id="popup-req-{{ req.id }}" class="popup">
+    <div class="popup-content">
+      <span class="close-btn" onclick="closePopup('req-{{ req.id }}')">&times;</span>
+      <h2>Request Details</h2>
+      <p><strong>Engineer:</strong> {{ req.engineer.username|default:"-" }}</p>
+      <p><strong>User:</strong> {{ req.user|default:"-" }}</p>
+      <p><strong>Location:</strong> {{ req.location|default:"-" }}</p>
+      <p><strong>Status:</strong> {{ req.status|default:"-" }}</p>
+      <p><strong>Submitted At:</strong> {{ req.submitted_at|date:"Y-m-d H:i" }}</p>
+      <p><strong>Old Hostname:</strong> {{ req.old_hostname|default:"-" }}</p>
+      <p><strong>New Hostname:</strong> {{ req.new_hostname|default:"-" }}</p>
+      <p><strong>Old Serial Number:</strong> {{ req.old_serial|default:"-" }}</p>
+      <p><strong>New Serial Number:</strong> {{ req.new_serial|default:"-" }}</p>
+      <p><strong>Rescheduled Date:</strong> {{ req.rescheduled_date|default:"-" }}</p>
+      <p><strong>Format Status:</strong> {{ req.format_status|default:"-" }}</p>
+      <p><strong>Reason (if not formatted):</strong> {{ req.reason_not_formatted|default:"-" }}</p>
+      <p><strong>Upload Status:</strong> {{ req.upload_status|default:"Not Yet" }}</p>
+      <p><strong>Reason (if not uploaded):</strong> {{ req.reason_not_uploaded|default:"-" }}</p>
+      <p><strong>Remarks:</strong> {{ req.remarks|default:"-" }}</p>
+      <p><strong>Proof:</strong> {% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View Uploaded Proof</a>{% else %}N/A{% endif %}</p>
+    </div>
+  </div>
+  {% endfor %}
+
+  <script>
+    function openPopup(id) {
+      document.getElementById('popup-' + id).style.display = 'flex';
+    }
+    function closePopup(id) {
+      document.getElementById('popup-' + id).style.display = 'none';
+    }
+  </script>
 
 </body>
 </html>

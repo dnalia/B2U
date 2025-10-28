@@ -1,133 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Engineer Dashboard - Beyond2U</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f6fa;
-        }
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 220px;
-            height: 100%;
-            background-color: #004aad;
-            color: white;
-            padding: 20px;
-        }
-        .sidebar h2 {
-            margin-bottom: 40px;
-            font-size: 22px;
-            text-align: center;
-        }
-        .sidebar a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 12px 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            transition: background 0.3s;
-        }
-        .sidebar a:hover {
-            background-color: #003080;
-        }
-        .content {
-            margin-left: 240px;
-            padding: 30px;
-        }
-        h1 {
-            color: #004aad;
-            margin-bottom: 20px;
-        }
-        .top-actions {
-            margin-bottom: 20px;
-        }
-        .top-actions a {
-            background-color: #004aad;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-        .top-actions a:hover {
-            background-color: #003080;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-        }
-        th {
-            background-color: #004aad;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .status {
-            font-weight: bold;
-        }
-        .status.Pending { color: orange; }
-        .status.Approved { color: green; }
-        .status.Rejected { color: red; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Engineer Dashboard - Beyond2U</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #2d2d2d;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #004aad, #5c9eff);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 30px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+      border-top-right-radius: 25px;
+      border-bottom-right-radius: 25px;
+    }
+
+    .sidebar h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffeb70;
+      margin-bottom: 50px;
+      letter-spacing: 1px;
+    }
+
+    .sidebar a {
+      display: block;
+      width: 80%;
+      text-align: center;
+      color: white;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px 10px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar a:hover {
+      background: #ffda47;
+      color: #004aad;
+      font-weight: 600;
+      transform: translateY(-3px);
+    }
+
+    /* Main content */
+    .content {
+      margin-left: 260px;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 30px;
+      color: #004aad;
+      margin-bottom: 30px;
+    }
+
+    h1 span {
+      color: #ffcc00;
+      font-weight: 700;
+    }
+
+    /* Top action button */
+    .top-actions {
+      margin-bottom: 30px;
+    }
+
+    .top-actions a {
+      background-color: #004aad;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .top-actions a:hover {
+      background-color: #003080;
+      transform: translateY(-2px);
+    }
+
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0, 84, 200, 0.1);
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #004aad;
+      color: white;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f7faff;
+    }
+
+    .status {
+      font-weight: bold;
+    }
+
+    .status.Pending {
+      color: #ffb300;
+    }
+
+    .status.Approved {
+      color: #28a745;
+    }
+
+    .status.Rejected {
+      color: #dc3545;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <h2>Beyond2U</h2>
-        <a href="{% url 'engineer_dashboard' %}">🏠 Dashboard</a>
-        <a href="{% url 'create_request' %}">📝 Create New Request</a>
-        <a href="{% url 'logout' %}">🚪 Logout</a>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'engineer_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'create_request' %}">📝 Create New Request</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
+  </div>
+
+  <!-- Main content -->
+  <div class="content">
+    <h1>Welcome, Engineer <span>{{ request.user.username|title }}</span> 👋</h1>
+
+    <div class="top-actions">
+      <a href="{% url 'create_request' %}">+ Create New Tech Refresh</a>
     </div>
 
-    <div class="content">
-        <h1>Welcome, {{ request.user.username }} 👋</h1>
-
-        <div class="top-actions">
-            <a href="{% url 'create_request' %}">+ Create New Tech Refresh</a>
-        </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Location</th>
-                    <th>User</th>
-                    <th>Status</th>
-                    <th>Submitted At</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for req in requests %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ req.location }}</td>
-                    <td>{{ req.user }}</td>
-                    <td class="status {{ req.status }}">{{ req.status }}</td>
-                    <td>{{ req.submitted_at|date:"Y-m-d H:i" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" style="text-align:center;">No requests found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Location</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Submitted At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ req.location }}</td>
+          <td>{{ req.user }}</td>
+          <td class="status {{ req.status }}">{{ req.status }}</td>
+          <td>{{ req.submitted_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center;">No requests found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
 </body>
 </html>
