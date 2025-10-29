@@ -672,6 +672,21 @@ def mark_as_read(request, notification_id):
     return redirect('notifications')
 
 @login_required
+def view_request_detail(request, req_id):
+    # Try both models since TeamLead manages both
+    request_obj = (
+        Request.objects.filter(id=req_id).first() or
+        TechRefreshRequest.objects.filter(id=req_id).first()
+    )
+
+    if not request_obj:
+        messages.error(request, "Request not found.")
+        return redirect('manage_requests')
+
+    return render(request, 'view_request_detail.html', {'request_obj': request_obj})
+
+
+@login_required
 def view_request_details(request, req_id):
     # Try to find in Request first
     request_obj = Request.objects.filter(id=req_id).first()
