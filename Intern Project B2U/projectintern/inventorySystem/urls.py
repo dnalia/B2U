@@ -22,11 +22,14 @@ urlpatterns = [
 
     # Manage Requests (Team Lead)
     path('manage_requests/', views.manage_requests, name='manage_requests'),
+    path('reports/export/pdf/', views.export_requests_pdf, name='export_requests_pdf'),
+
 
     # ✅ FIXED: View Request Details
     path('request/<int:req_id>/details/', views.view_request_details, name='view_request_details'),
 
-    
+    path('dashboard/teamlead/reports/<int:request_id>/', views.report_details, name='report_details'),
+
 
     # ✅ FIXED: Approve / Reject Request
     path('request/<int:req_id>/approve/', views.approve_request, name='approve_request'),

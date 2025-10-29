@@ -317,46 +317,88 @@ def edit_task(request, task_id):
     return render(request, 'edit_task.html', {'task': task})
 
 
-@login_required
-def download_task_pdf(request, task_id):
-    task = get_object_or_404(Request, id=task_id, engineer=request.user)
+@require_role('TeamLead')
+def export_requests_pdf(request):
+    engineer_name = request.GET.get('engineer_name', '').strip()
+    request_type = request.GET.get('request_type', '').strip()
+    date_filter = request.GET.get('start_date', '').strip()
 
-    if task.status != 'Approved':
-        messages.error(request, "You can only download approved tasks.")
-        return redirect('my_submissions')
+    # Combine data sama macam reports()
+    request_list = []
 
-    buffer = io.BytesIO()
+    reqs = Request.objects.filter(status__in=['Approved', 'Pending', 'Rejected']).order_by('-created_at')
+    for r in reqs:
+        request_list.append({
+            'engineer_name': r.engineer.username if r.engineer else "N/A",
+            'request_type': r.type or "General Request",
+            'date_submitted': r.created_at.date(),
+            'status': r.status,
+        })
+
+    techs = TechRefreshRequest.objects.filter(status__in=['Approved', 'Pending', 'Rejected']).order_by('-submitted_at')
+    for t in techs:
+        request_list.append({
+            'engineer_name': t.engineer.username if t.engineer else "N/A",
+            'request_type': "Tech Refresh",
+            'date_submitted': t.submitted_at.date(),
+            'status': t.status,
+        })
+
+    # Apply filters
+    if engineer_name:
+        request_list = [r for r in request_list if engineer_name.lower() in r['engineer_name'].lower()]
+
+    if request_type:
+        request_list = [r for r in request_list if r['request_type'].lower() == request_type.lower()]
+
+    if date_filter:
+        request_list = [r for r in request_list if str(r['date_submitted']) == date_filter]
+
+    # ===== Generate PDF =====
+    buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(200, height - 50, "Task Report")
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(200, height - 40, "Requests Report")
 
-    p.setFont("Helvetica", 12)
-    y = height - 100
-    details = [
-        f"Engineer: {task.engineer.username}",
-        f"Task Type: {task.type}",
-        f"Status: {task.status}",
-        f"Location: {task.location}",
-        f"Old Barcode: {task.old_barcode}",
-        f"New Barcode: {task.new_barcode}",
-        f"Old Serial: {task.old_serial}",
-        f"New Serial: {task.new_serial}",
-        f"Old IP: {task.old_ip}",
-        f"New IP: {task.new_ip}",
-        f"Remarks: {task.remarks or '-'}",
-        f"Date Submitted: {task.created_at.strftime('%Y-%m-%d %H:%M')}",
-    ]
+    y = height - 80
+    p.setFont("Helvetica", 10)
+    p.drawString(50, y, f"Engineer Filter: {engineer_name or 'All'}")
+    y -= 15
+    p.drawString(50, y, f"Request Type: {request_type or 'All'}")
+    y -= 15
+    p.drawString(50, y, f"Date: {date_filter or 'All'}")
+    y -= 30
 
-    for line in details:
-        p.drawString(80, y, line)
-        y -= 20
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(50, y, "Engineer")
+    p.drawString(180, y, "Request Type")
+    p.drawString(320, y, "Date")
+    p.drawString(420, y, "Status")
+    y -= 15
+    p.line(50, y, 550, y)
+    y -= 10
 
-    p.showPage()
+    p.setFont("Helvetica", 10)
+    for r in request_list:
+        if y < 80:  # new page
+            p.showPage()
+            y = height - 80
+        p.drawString(50, y, r['engineer_name'])
+        p.drawString(180, y, r['request_type'])
+        p.drawString(320, y, str(r['date_submitted']))
+        p.drawString(420, y, r['status'])
+        y -= 15
+
     p.save()
     buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename=f"task_{task.id}.pdf")
+    return FileResponse(buffer, as_attachment=True, filename="filtered_report.pdf")
+
+from django.http import HttpResponse
+
+def download_task_pdf(request):
+    return HttpResponse("Download Task PDF feature not implemented yet.")
 
 
 # ----------------------------
@@ -635,50 +677,148 @@ def reject_request(request, req_id):
 # ==============================
 # 📈 REPORTS & EXPORTS (TeamLead only)
 # ==============================
+from io import BytesIO
+from django.http import HttpResponse, FileResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-from io import BytesIO
 import pandas as pd
-from django.http import HttpResponse
+from django.contrib import messages
 from .models import Request, TechRefreshRequest
+#from .decorators import require_role  # if you placed require_role above, skip this import
+
+from django.shortcuts import render
+from .models import Request
+from django.db.models import Q
+
+def reports(request):
+    engineer_name = request.GET.get('engineer_name', '')
+    request_type = request.GET.get('request_type', '')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+
+    requests_qs = Request.objects.all()
+
+    # Filter ikut nama
+    if engineer_name:
+        requests_qs = requests_qs.filter(engineer_name__icontains=engineer_name)
+
+    # Filter ikut request type
+    if request_type:
+        requests_qs = requests_qs.filter(request_type__icontains=request_type)
+
+    # Filter ikut date range
+    if start_date and end_date:
+        requests_qs = requests_qs.filter(date_submitted__range=[start_date, end_date])
+    elif start_date:
+        requests_qs = requests_qs.filter(date_submitted__gte=start_date)
+    elif end_date:
+        requests_qs = requests_qs.filter(date_submitted__lte=end_date)
+
+    context = {
+        'requests': requests_qs,
+        'engineer_name': engineer_name,
+        'request_type': request_type,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'reports.html', context)
+
 
 
 @require_role('TeamLead')
 def reports(request):
     """
-    Display all Tech Refresh Requests for Team Lead report view.
-    You can adjust to show only 'Approved' ones if preferred.
+    Show all requests (Request + TechRefreshRequest) with filters:
+    - Engineer name
+    - Request type
+    - Date
     """
-    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
-    context = {'requests': requests_list}
+    engineer_name = request.GET.get('engineer_name', '').strip()
+    request_type = request.GET.get('request_type', '').strip()
+    date_filter = request.GET.get('start_date', '').strip()
+
+    # Combine both models into a single list
+    request_list = []
+
+    # Regular requests
+    reqs = Request.objects.filter(status__in=['Approved', 'Pending', 'Rejected']).order_by('-created_at')
+    for r in reqs:
+        request_list.append({
+            'id': r.id,
+            'engineer_name': r.engineer.username if r.engineer else "N/A",
+            'request_type': r.type or "General Request",
+            'date_submitted': r.created_at.date(),
+            'status': r.status,
+        })
+
+    # Tech Refresh requests
+    techs = TechRefreshRequest.objects.filter(status__in=['Approved', 'Pending', 'Rejected']).order_by('-submitted_at')
+    for t in techs:
+        request_list.append({
+            'id': t.id,
+            'engineer_name': t.engineer.username if t.engineer else "N/A",
+            'request_type': "Tech Refresh",
+            'date_submitted': t.submitted_at.date(),
+            'status': t.status,
+        })
+
+    # Apply filters
+    if engineer_name:
+        request_list = [r for r in request_list if engineer_name.lower() in r['engineer_name'].lower()]
+
+    if request_type:
+        request_list = [r for r in request_list if r['request_type'].lower() == request_type.lower()]
+
+    if date_filter:
+        request_list = [r for r in request_list if str(r['date_submitted']) == date_filter]
+
+    # Sort by latest date
+    request_list.sort(key=lambda x: x['date_submitted'], reverse=True)
+
+    context = {
+        'requests': request_list,
+        'engineer_name': engineer_name,
+        'request_type': request_type,
+        'start_date': date_filter,
+    }
     return render(request, 'reports.html', context)
+
 
 
 @require_role('TeamLead')
 def export_requests_excel(request):
     """
-    Export all Tech Refresh Requests into Excel (.xlsx) format.
+    Export combined Request + TechRefreshRequest data into Excel.
     """
-    requests_list = TechRefreshRequest.objects.all().values(
-        'engineer__username', 'location', 'user', 'status', 'submitted_at'
-    )
+    # Combine both models
+    reqs = list(Request.objects.values('engineer__username', 'type', 'status', 'created_at'))
+    techs = list(TechRefreshRequest.objects.values('engineer__username', 'status', 'submitted_at'))
 
-    if not requests_list.exists():
-        messages.error(request, "No requests available to export.")
+    # Normalize fields to be consistent
+    combined_data = []
+    for r in reqs:
+        combined_data.append({
+            'Engineer': r['engineer__username'],
+            'Request Type': r['type'] or "General Request",
+            'Status': r['status'],
+            'Date Submitted': r['created_at'],
+        })
+    for t in techs:
+        combined_data.append({
+            'Engineer': t['engineer__username'],
+            'Request Type': "Tech Refresh",
+            'Status': t['status'],
+            'Date Submitted': t['submitted_at'],
+        })
+
+    if not combined_data:
+        messages.error(request, "No data available to export.")
         return redirect('reports')
 
-    df = pd.DataFrame(list(requests_list))
-    df.rename(columns={
-        'engineer__username': 'Engineer',
-        'location': 'Location',
-        'user': 'User',
-        'status': 'Status',
-        'submitted_at': 'Submitted At'
-    }, inplace=True)
-
+    df = pd.DataFrame(combined_data)
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Requests')
+        df.to_excel(writer, index=False, sheet_name='Requests Report')
 
     buffer.seek(0)
     response = HttpResponse(
@@ -689,50 +829,88 @@ def export_requests_excel(request):
     return response
 
 
-@require_role('TeamLead')
+from django.shortcuts import render
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import cm
+from datetime import datetime
+from .models import Request, TechRefreshRequest
+
 def export_requests_pdf(request):
-    """
-    Export all Tech Refresh Requests into a simple PDF report.
-    """
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="filtered_requests.pdf"'
+
+    # Buat PDF canvas
+    p = canvas.Canvas(response, pagesize=A4)
     width, height = A4
 
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(200, height - 50, "Tech Refresh Requests Report")
+    # Tajuk PDF
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(2 * cm, height - 2 * cm, "Filtered Requests Report")
 
-    p.setFont("Helvetica", 11)
-    y = height - 100
+    # Ambil data dari GET parameter
+    request_type = request.GET.get('request_type', '')
+    from_date = request.GET.get('from_date', '')
+    to_date = request.GET.get('to_date', '')
 
-    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
+    # Parse tarikh (kalau ada)
+    try:
+        if from_date:
+            from_date = datetime.strptime(from_date, "%Y-%m-%d").date()
+        if to_date:
+            to_date = datetime.strptime(to_date, "%Y-%m-%d").date()
+    except ValueError:
+        from_date = to_date = None
 
-    if not requests_list.exists():
-        p.drawString(100, y, "No requests available.")
+    # Tentukan model berdasarkan jenis request
+    if request_type == "Tech Refresh":
+        queryset = TechRefreshRequest.objects.all()
+        date_field = "submitted_at"
     else:
-        for req in requests_list:
-            text = (
-                f"Engineer: {req.engineer.username}, "
-                f"Location: {req.location}, "
-                f"User: {req.user}, "
-                f"Status: {req.status}, "
-                f"Date: {req.submitted_at.strftime('%Y-%m-%d')}"
-            )
-            p.drawString(50, y, text)
-            y -= 20
+        queryset = Request.objects.all()
+        date_field = "created_at"
 
-            if y < 50:
+    # Apply tarikh filter
+    if from_date:
+        queryset = queryset.filter(**{f"{date_field}__date__gte": from_date})
+    if to_date:
+        queryset = queryset.filter(**{f"{date_field}__date__lte": to_date})
+
+    # Tambah margin untuk text
+    y = height - 3 * cm
+    p.setFont("Helvetica", 11)
+
+    if queryset.exists():
+        for req in queryset:
+            # Bezakan antara Request & TechRefreshRequest
+            if request_type == "Tech Refresh":
+                line = f"{req.engineer.username} | {req.user} | {req.location} | {req.status} | {req.submitted_at.strftime('%Y-%m-%d')}"
+            else:
+                line = f"{req.engineer.username} | {req.user} | {req.location} | {req.status} | {req.created_at.strftime('%Y-%m-%d')}"
+
+            p.drawString(2 * cm, y, line)
+            y -= 0.6 * cm
+            if y < 2 * cm:
                 p.showPage()
+                y = height - 3 * cm
                 p.setFont("Helvetica", 11)
-                y = height - 50
+    else:
+        p.setFont("Helvetica-Oblique", 11)
+        p.drawString(2 * cm, y, "No records found for the selected filters.")
 
+    p.showPage()
     p.save()
-    pdf = buffer.getvalue()
-    buffer.close()
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="requests_report.pdf"'
-    response.write(pdf)
     return response
+
+
+
+
+@login_required
+@require_role('TeamLead')
+def report_details(request, request_id):
+    report = get_object_or_404(Request, id=request_id)
+    return render(request, 'report_details.html', {'report': report})
 
 
 

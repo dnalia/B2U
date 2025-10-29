@@ -5,6 +5,16 @@
 
 {% block content %}
 <style>
+
+form .form-control, form .form-select {
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+form .btn {
+  border-radius: 12px;
+  font-weight: 500;
+}
+
 /* Page Container */
 .reports-container {
   max-width: 1200px;
@@ -31,6 +41,11 @@
 }
 
 /* Table */
+.table td, .table th {
+  vertical-align: middle;
+  text-align: center;
+}
+
 .table {
   border-collapse: collapse;
   width: 100%;
@@ -71,72 +86,102 @@
 .export-buttons .btn-success:hover {
   background-color: #218838;
 }
+
+form input, form select {
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+form button {
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-weight: 500;
+}
+
 </style>
 
 <div class="reports-container">
-  <h2 class="reports-title">Reports Overview</h2>
+  <h2 class="reports-title">📊 Reports Overview</h2>
 
 
   <br>
   <br>
 
-  <div class="table-wrapper mt-4">
-    <div class="table-responsive">
-      <table class="table align-middle">
-        <thead>
-          <tr>
-            <th>Num</th>
-            <th>Engineer Name</th>
-            <th>Request Type</th>
-            <th>Date Submitted</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for req in requests %}
+<form method="get" class="d-flex justify-content-end align-items-center gap-2 mb-4 flex-wrap">
+  <input type="text" name="engineer_name" class="form-control" placeholder="Engineer Name" value="{{ engineer_name }}" style="max-width: 180px;">
+  
+  <select name="request_type" class="form-select" style="max-width: 180px;">
+    <option value="">All Request Types</option>
+    <option value="Tech Refresh" {% if request_type == "Tech Refresh" %}selected{% endif %}>Tech Refresh</option>
+    <option value="Asset Refresh" {% if request_type == "Asset Refresh" %}selected{% endif %}>Asset Refresh</option>
+    <option value="Parts Upgrade" {% if request_type == "Parts Upgrade" %}selected{% endif %}>Parts Upgrade</option>
+  </select>
 
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ req.engineer_name }}</td>
-            <td>{{ req.request_type }}</td>
-            <td>{{ req.date_submitted|date:"d M Y" }}</td>
-            <td>
-              {% if req.status == 'Approved' %}
-                <span class="badge bg-success">Approved</span>
-              {% elif req.status == 'Pending' %}
-                <span class="badge bg-warning text-dark">Pending</span>
-              {% else %}
-                <span class="badge bg-danger">Rejected</span>
-              {% endif %}
-            </td>
-            <td>
-              <a href="{% url 'report_details' req.id %}" class="btn btn-outline-primary btn-sm rounded-pill">
-                View Details
-              </a>
-            </td>
-          </tr>
-          {% empty %}
-            <tr>
-              <td colspan="6" class="text-center text-muted">No approved requests found.</td>
-            </tr>
-            {% endfor %}
+  <input type="date" name="start_date" class="form-control" value="{{ start_date }}" style="max-width: 170px;">
 
-        </tbody>
-      </table>
-    </div>
+  <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">Filter</button>
+  <a href="{% url 'reports' %}" class="btn btn-secondary btn-sm rounded-pill px-3">Reset</a>
+</form>
 
-    <br>
-    <br>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-    <div class="export-buttons">
-      <a href="#" class="btn btn-danger btn-sm me-2">
-        <i class="bi bi-file-earmark-pdf"></i> Export PDF
-      </a>
-    </div>
+<br>
+<br>
+
+
+<div class="table-wrapper mt-4">
+  <div style="overflow-x:auto;">
+    <table class="table table-bordered text-center">
+      <thead class="table-primary">
+        <tr>
+          <th style="width:5%;">No</th>
+          <th style="width:20%;">Engineer Name</th>
+          <th style="width:20%;">Request Type</th>
+          <th style="width:20%;">Date Submitted</th>
+          <th style="width:15%;">Status</th>
+          <th style="width:20%;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ req.engineer_name }}</td>
+          <td>{{ req.request_type }}</td>
+          <td>{{ req.date_submitted|date:"d M Y" }}</td>
+          <td>
+            {% if req.status == 'Approved' %}
+              <span class="badge bg-success">Approved</span>
+            {% elif req.status == 'Pending' %}
+              <span class="badge bg-warning text-dark">Pending</span>
+            {% else %}
+              <span class="badge bg-danger">Rejected</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'report_details' req.id %}" class="btn btn-outline-primary btn-sm rounded-pill">
+              View Details
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-muted text-center">No approved requests found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+</div>
+<br>
+<br>
 
-  </div>
+<div class="export-buttons">
+  <a href="{% url 'export_requests_pdf' %}?engineer_name={{ engineer_name }}&request_type={{ request_type }}&start_date={{ start_date }}"
+     class="btn btn-danger btn-sm me-2">
+    <i class="bi bi-file-earmark-pdf"></i> Export PDF
+  </a>
+</div>
+
+
+
 </div>
 {% endblock %}
