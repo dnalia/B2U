@@ -11,7 +11,6 @@
       color: #2d2d2d;
     }
 
-    /* Sidebar */
     .sidebar {
       position: fixed;
       top: 0;
@@ -57,7 +56,6 @@
       transform: translateY(-3px);
     }
 
-    /* Content */
     .content {
       margin-left: 260px;
       padding: 40px;
@@ -70,7 +68,6 @@
       margin-bottom: 25px;
     }
 
-    /* Filter Form */
     form {
       display: flex;
       gap: 10px;
@@ -88,11 +85,6 @@
       background-color: white;
     }
 
-    input[type="text"]:focus, select:focus {
-      border-color: #004aad;
-      box-shadow: 0 0 8px rgba(0, 74, 173, 0.2);
-    }
-
     .btn-primary {
       background-color: #004aad;
       color: white;
@@ -104,48 +96,37 @@
       transition: all 0.3s ease;
     }
 
-    .btn-primary:hover {
-      background-color: #003580;
-      transform: translateY(-2px);
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0, 84, 200, 0.08);
     }
 
-    
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #f1f1f1;
+      font-size: 15px;
+    }
 
-    /* Table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 84, 200, 0.08);
-}
+    th {
+      background-color: #004aad;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
-th, td {
-  padding: 14px 16px;
-  text-align: left;
-  border-bottom: 1px solid #f1f1f1;
-  font-size: 15px;
-}
+    tr:hover {
+      background-color: #f6faff;
+    }
 
-th {
-  background-color: #004aad; /* 🔵 solid color instead of gradient */
-  color: white;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-tr:hover {
-  background-color: #f6faff;
-}
-
-
-    /* Status */
     .status-pending { color: #ffb300; font-weight: 600; }
     .status-approved { color: #28a745; font-weight: 600; }
     .status-rejected { color: #dc3545; font-weight: 600; }
 
-    /* Buttons */
     .btn {
       padding: 7px 13px;
       border-radius: 8px;
@@ -159,15 +140,9 @@ tr:hover {
     }
 
     .view-btn { background-color: #007bff; }
-    .view-btn:hover { background-color: #0062cc; }
-
     .approve-btn { background-color: #28a745; }
-    .approve-btn:hover { background-color: #1e7e34; }
-
     .reject-btn { background-color: #dc3545; }
-    .reject-btn:hover { background-color: #b21f2d; }
 
-    /* Popup */
     .popup {
       display: none;
       position: fixed;
@@ -190,16 +165,6 @@ tr:hover {
       animation: popupFade 0.3s ease;
     }
 
-    .popup-content h2 {
-      color: #004aad;
-      margin-bottom: 15px;
-    }
-
-    @keyframes popupFade {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
     .close-btn {
       position: absolute;
       top: 12px;
@@ -210,14 +175,11 @@ tr:hover {
       transition: color 0.3s;
     }
 
-    .close-btn:hover {
-      color: #004aad;
-    }
+    .close-btn:hover { color: #004aad; }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar -->
   <div class="sidebar">
     <h2>Beyond2U</h2>
     <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
@@ -228,15 +190,13 @@ tr:hover {
     <a href="{% url 'logout' %}">🚪 Logout</a>
   </div>
 
-  <!-- Main Content -->
   <div class="content">
     <h1>Manage Requests</h1>
 
-    <!-- Filter Form -->
     <form method="GET">
       <input type="text" name="search" placeholder="🔍 Search by name or location" value="{{ search_query }}">
       <select name="status">
-        <option value="all" {% if status_filter == 'all' or not status_filter %}selected{% endif %}>All</option>
+        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
         <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
         <option value="Approved" {% if status_filter == 'Approved' %}selected{% endif %}>Approved</option>
         <option value="Rejected" {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
@@ -244,7 +204,6 @@ tr:hover {
       <button type="submit" class="btn-primary">Filter</button>
     </form>
 
-    <!-- Requests Table -->
     <table>
       <thead>
         <tr>
@@ -262,6 +221,7 @@ tr:hover {
         {% for req in requests %}
         <tr>
           <td>{{ forloop.counter }}</td>
+<<<<<<< HEAD
           <td>{{ req.engineer.username|default:"-" }}</td>
           <td>{{ req.location|default:"-" }}</td>
           <td>{{ req.user|default:"-" }}</td>
@@ -278,6 +238,14 @@ tr:hover {
 
 
           <td>{% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View</a>{% else %}N/A{% endif %}</td>
+=======
+          <td>{{ req.engineer }}</td>
+          <td>{{ req.location }}</td>
+          <td>{{ req.user }}</td>
+          <td class="status-{{ req.status|lower }}">{{ req.status }}</td>
+          <td>{{ req.created_at|date:"Y-m-d H:i" }}</td>
+          <td>{% if req.proof %}<a href="{{ req.proof }}" target="_blank">View</a>{% else %}N/A{% endif %}</td>
+>>>>>>> d2dbd0137e67d49de8a8efc31afe3e87562905ea
           <td>
             <button class="btn view-btn" onclick="openPopup('req-{{ req.id }}')">View</button>
             {% if req.status == "Pending" %}
@@ -289,20 +257,18 @@ tr:hover {
           </td>
         </tr>
         {% empty %}
-        <tr>
-          <td colspan="8" style="text-align:center;">No requests found.</td>
-        </tr>
+        <tr><td colspan="8" style="text-align:center;">No requests found.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-  <!-- Popups -->
   {% for req in requests %}
   <div id="popup-req-{{ req.id }}" class="popup">
     <div class="popup-content">
       <span class="close-btn" onclick="closePopup('req-{{ req.id }}')">&times;</span>
       <h2>Request Details</h2>
+<<<<<<< HEAD
       <p><strong>Engineer:</strong> {{ req.engineer.username|default:"-" }}</p>
       <p><strong>User:</strong> {{ req.user|default:"-" }}</p>
       <p><strong>Location:</strong> {{ req.location|default:"-" }}</p>
@@ -319,6 +285,24 @@ tr:hover {
       <p><strong>Reason (if not uploaded):</strong> {{ req.reason_not_uploaded|default:"-" }}</p>
       <p><strong>Remarks:</strong> {{ req.remarks|default:"-" }}</p>
       <p><strong>Proof:</strong> {% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View Uploaded Proof</a>{% else %}N/A{% endif %}</p>
+=======
+      <p><strong>Engineer:</strong> {{ req.engineer }}</p>
+      <p><strong>User:</strong> {{ req.user }}</p>
+      <p><strong>Location:</strong> {{ req.location }}</p>
+      <p><strong>Status:</strong> {{ req.status }}</p>
+      <p><strong>Submitted At:</strong> {{ req.created_at|date:"Y-m-d H:i" }}</p>
+      <p><strong>Old Hostname:</strong> {{ req.old_hostname }}</p>
+      <p><strong>New Hostname:</strong> {{ req.new_hostname }}</p>
+      <p><strong>Old Serial Number:</strong> {{ req.old_serial }}</p>
+      <p><strong>New Serial Number:</strong> {{ req.new_serial }}</p>
+      <p><strong>Rescheduled Date:</strong> {{ req.rescheduled_date }}</p>
+      <p><strong>Format Status:</strong> {{ req.format_status }}</p>
+      <p><strong>Reason (if not formatted):</strong> {{ req.reason_not_formatted }}</p>
+      <p><strong>Upload Status:</strong> {{ req.upload_status }}</p>
+      <p><strong>Reason (if not uploaded):</strong> {{ req.reason_not_uploaded }}</p>
+      <p><strong>Remarks:</strong> {{ req.remarks }}</p>
+      <p><strong>Proof:</strong> {% if req.proof %}<a href="{{ req.proof }}" target="_blank">View Uploaded Proof</a>{% else %}N/A{% endif %}</p>
+>>>>>>> 2cb237c (12)
     </div>
   </div>
   {% endfor %}
