@@ -182,23 +182,35 @@ def teamlead_dashboard(request):
 
 @login_required(login_url='login')
 def systemengineer_dashboard(request):
-    # allow only system engineers here
+    # ✅ Pastikan hanya System Engineer boleh masuk
     if request.user.role != 'SystemEngineer':
         messages.error(request, "Access denied. You are not a System Engineer.")
         return redirect('teamlead_dashboard')
 
     user = request.user
-    my_requests = TechRefreshRequest.objects.filter(engineer=user)
+
+    # ✅ Ambil semua task/request yang engineer ni buat
+    my_requests = Request.objects.filter(engineer=user)
+
+    # ✅ Ambil inventory yang ditambah/assigned kepada engineer ni
     assigned_items = Inventory.objects.filter(added_by=user)
 
+    # ✅ Kira status
+    pending_count = my_requests.filter(status='Pending').count()
+    approved_count = my_requests.filter(status='Approved').count()
+    rejected_count = my_requests.filter(status='Rejected').count()
+
+    # ✅ Hantar semua data ke template
     context = {
-        'pending_count': my_requests.filter(status='Pending').count(),
-        'approved_count': my_requests.filter(status='Approved').count(),
-        'rejected_count': my_requests.filter(status='Rejected').count(),
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
         'my_requests': my_requests,
         'assigned_items': assigned_items
     }
+
     return render(request, 'systemengineer_dashboard.html', context)
+
 
 
 # ----------------------------
@@ -478,40 +490,90 @@ def create_request(request):
         return redirect('systemengineer_dashboard')
     return render(request, 'create_request.html')
 
-
 @login_required(login_url='login')
 def manage_requests(request):
-    # Allow both roles but show appropriate controls in template
+    # Ambil query parameter dari form search dan filter status
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', 'all')
 
+    # Ambil data daripada kedua-dua model
     requests_qs = Request.objects.all()
-    tech_requests_qs = TechRefreshRequest.objects.all()
+    tech_qs = TechRefresh.objects.all()
 
+    # Filter berdasarkan carian (nama engineer / lokasi / user)
     if search_query:
         requests_qs = requests_qs.filter(
             Q(engineer__username__icontains=search_query) |
             Q(location__icontains=search_query) |
             Q(user__icontains=search_query)
         )
-        tech_requests_qs = tech_requests_qs.filter(
-            Q(engineer__username__icontains=search_query) |
+        tech_qs = tech_qs.filter(
+            Q(engineer_name__icontains=search_query) |
             Q(location__icontains=search_query) |
-            Q(user__icontains=search_query)
+            Q(user_name__icontains=search_query)
         )
 
+    # Filter berdasarkan status
     if status_filter and status_filter != 'all':
         requests_qs = requests_qs.filter(status=status_filter)
-        tech_requests_qs = tech_requests_qs.filter(status=status_filter)
+        tech_qs = tech_qs.filter(status=status_filter)
 
-    requests_list = list(requests_qs) + list(tech_requests_qs)
-    requests_list.sort(key=lambda x: getattr(x, 'created_at', getattr(x, 'submitted_at', None)), reverse=True)
+    # Gabungkan data jadi satu senarai (normalize supaya template boleh baca seragam)
+    combined_requests = []
+
+    for r in requests_qs:
+        combined_requests.append({
+            'id': r.id,
+            'type': r.type,
+            'engineer': r.engineer.username if r.engineer else 'N/A',
+            'user': r.user or 'N/A',
+            'location': r.location or 'N/A',
+            'status': r.status,
+            'old_hostname': r.old_hostname or '-',
+            'new_hostname': r.new_hostname or '-',
+            'old_serial': r.old_serial or '-',
+            'new_serial': r.new_serial or '-',
+            'rescheduled_date': r.rescheduled_date or '-',
+            'format_status': r.format_status or '-',
+            'reason_not_formatted': r.reason_not_formatted or '-',
+            'upload_status': r.upload_status or '-',
+            'reason_not_uploaded': r.reason_not_uploaded or '-',
+            'remarks': r.remarks or '-',
+            'proof': r.proof.url if r.proof else None,
+            'created_at': r.created_at,
+        })
+
+    for t in tech_qs:
+        combined_requests.append({
+            'id': t.id,
+            'type': 'Tech Refresh',
+            'engineer': t.engineer_name or 'N/A',
+            'user': t.user_name or 'N/A',
+            'location': t.location or 'N/A',
+            'status': t.status,
+            'old_hostname': t.old_hostname or '-',
+            'new_hostname': t.new_hostname or '-',
+            'old_serial': t.old_serial_number or '-',
+            'new_serial': t.new_serial_number or '-',
+            'rescheduled_date': t.date_if_rescheduled or '-',
+            'format_status': t.format_status or '-',
+            'reason_not_formatted': t.reason_not_formatted or '-',
+            'upload_status': t.upload_status or '-',
+            'reason_not_uploaded': t.reason_not_uploaded or '-',
+            'remarks': t.remarks or '-',
+            'proof': None,  # Tiada proof field untuk model ni
+            'created_at': t.created_at,
+        })
+
+    # Susun ikut tarikh paling baru
+    combined_requests.sort(key=lambda x: x['created_at'], reverse=True)
 
     context = {
-        'requests': requests_list,
+        'requests': combined_requests,
         'search_query': search_query,
         'status_filter': status_filter,
     }
+
     return render(request, 'manage_requests.html', context)
 
 
