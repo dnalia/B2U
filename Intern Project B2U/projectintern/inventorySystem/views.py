@@ -570,15 +570,219 @@ def reject_request(request, req_id):
     messages.error(request, "Request not found.")
     return redirect('manage_requests')
 
-
 # ==============================
 # 📈 REPORTS & EXPORTS (TeamLead only)
 # ==============================
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
+import pandas as pd
+from django.http import HttpResponse
+from .models import Request, TechRefreshRequest
+
+
 @require_role('TeamLead')
 def reports(request):
+    """
+    Display all Tech Refresh Requests for Team Lead report view.
+    You can adjust to show only 'Approved' ones if preferred.
+    """
     requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
     context = {'requests': requests_list}
     return render(request, 'reports.html', context)
+
+
+@require_role('TeamLead')
+def export_requests_excel(request):
+    """
+    Export all Tech Refresh Requests into Excel (.xlsx) format.
+    """
+    requests_list = TechRefreshRequest.objects.all().values(
+        'engineer__username', 'location', 'user', 'status', 'submitted_at'
+    )
+
+    if not requests_list.exists():
+        messages.error(request, "No requests available to export.")
+        return redirect('reports')
+
+    df = pd.DataFrame(list(requests_list))
+    df.rename(columns={
+        'engineer__username': 'Engineer',
+        'location': 'Location',
+        'user': 'User',
+        'status': 'Status',
+        'submitted_at': 'Submitted At'
+    }, inplace=True)
+
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Requests')
+
+    buffer.seek(0)
+    response = HttpResponse(
+        buffer,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="requests_report.xlsx"'
+    return response
+
+
+@require_role('TeamLead')
+def export_requests_pdf(request):
+    """
+    Export all Tech Refresh Requests into a simple PDF report.
+    """
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(200, height - 50, "Tech Refresh Requests Report")
+
+    p.setFont("Helvetica", 11)
+    y = height - 100
+
+    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
+
+    if not requests_list.exists():
+        p.drawString(100, y, "No requests available.")
+    else:
+        for req in requests_list:
+            text = (
+                f"Engineer: {req.engineer.username}, "
+                f"Location: {req.location}, "
+                f"User: {req.user}, "
+                f"Status: {req.status}, "
+                f"Date: {req.submitted_at.strftime('%Y-%m-%d')}"
+            )
+            p.drawString(50, y, text)
+            y -= 20
+
+            if y < 50:
+                p.showPage()
+                p.setFont("Helvetica", 11)
+                y = height - 50
+
+    p.save()
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="requests_report.pdf"'
+    response.write(pdf)
+    return response
+
+
+
+'''# ==============================
+# 📈 REPORTS & EXPORTS (TeamLead only)
+# ==============================
+
+@login_required(login_url='login')
+def approve_request(request, request_id):
+    req = get_object_or_404(Request, id=request_id)
+    req.status = 'Approved'
+    req.save()
+    messages.success(request, f"Request {req.id} approved successfully.")
+    return redirect('manage_requests')
+
+@login_required(login_url='login')
+def reject_request(request, request_id):
+    req = get_object_or_404(Request, id=request_id)
+    req.status = 'Rejected'
+    req.save()
+    messages.info(request, f"Request {req.id} has been rejected.")
+    return redirect('manage_requests')
+
+
+
+@login_required(login_url='login')
+def reports(request):
+    # Show only approved requests
+    approved_requests = Request.objects.filter(status='Approved').order_by('-created_at')
+    return render(request, 'reports.html', {'requests': approved_requests})
+
+from django.shortcuts import render
+from .models import Request  # make sure this matches your model name
+
+@require_role('TeamLead')
+def reports(request):
+    # Filter only approved requests, or adjust if needed
+    requests_list = Request.objects.all().order_by('-date_submitted')
+    # If you only want approved:
+    # requests_list = Request.objects.filter(status='Approved').order_by('-date_submitted')
+
+    context = {
+        'requests': requests_list
+    }
+    return render(request, 'reports.html', context)
+
+@require_role('TeamLead')
+def reports(request):
+    # Show all requests (or only approved if you prefer)
+    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
+    context = {'requests': requests_list}
+    return render(request, 'reports.html', context)
+
+
+@require_role('TeamLead')
+def export_requests_excel(request):
+    requests_list = TechRefreshRequest.objects.all().values(
+        'engineer__username', 'location', 'user', 'status', 'submitted_at'
+    )
+    df = pd.DataFrame(list(requests_list))
+    df.rename(columns={
+        'engineer__username': 'Engineer',
+        'location': 'Location',
+        'user': 'User',
+        'status': 'Status',
+        'submitted_at': 'Submitted At'
+    }, inplace=True)
+
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Requests')
+
+    buffer.seek(0)
+    response = HttpResponse(
+        buffer,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="requests_report.xlsx"'
+    return response
+
+
+@require_role('TeamLead')
+def export_requests_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="requests_report.pdf"'
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(200, height - 50, "Requests Report")
+
+    p.setFont("Helvetica", 11)
+    y = height - 100
+    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
+
+    for req in requests_list:
+        text = f"Engineer: {req.engineer.username}, Location: {req.location}, Status: {req.status}, Date: {req.submitted_at.strftime('%Y-%m-%d')}"
+        p.drawString(50, y, text)
+        y -= 20
+        if y < 50:
+            p.showPage()
+            y = height - 50
+            p.setFont("Helvetica", 11)
+
+    p.save()
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
+
 
 
 
@@ -640,7 +844,7 @@ def export_requests_pdf(request):
     pdf = buffer.getvalue()
     buffer.close()
     response.write(pdf)
-    return response
+    return response'''
 
 
 # MAINTENANCE LOGS

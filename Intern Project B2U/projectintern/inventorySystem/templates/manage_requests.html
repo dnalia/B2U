@@ -266,7 +266,17 @@ tr:hover {
           <td>{{ req.location|default:"-" }}</td>
           <td>{{ req.user|default:"-" }}</td>
           <td class="status-{{ req.status|lower }}">{{ req.status|default:"-" }}</td>
-          <td>{{ req.submitted_at|date:"Y-m-d H:i" }}</td>
+          <td>
+              {% if req.created_at %}
+                {{ req.created_at|date:"Y-m-d H:i" }}
+              {% elif req.submitted_at %}
+                {{ req.submitted_at|date:"Y-m-d H:i" }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+
+
           <td>{% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View</a>{% else %}N/A{% endif %}</td>
           <td>
             <button class="btn view-btn" onclick="openPopup('req-{{ req.id }}')">View</button>
