@@ -1,144 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Team Lead Dashboard - Beyond2U</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f6fa;
-        }
+  <meta charset="UTF-8">
+  <title>Team Lead Dashboard - Beyond2U</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #2d2d2d;
+    }
 
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 220px;
-            height: 100%;
-            background-color: #004aad;
-            color: white;
-            padding: 20px;
-        }
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #004aad, #5c9eff);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 30px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+      border-top-right-radius: 25px;
+      border-bottom-right-radius: 25px;
+    }
 
-        .sidebar h2 {
-            margin-bottom: 40px;
-            font-size: 22px;
-            text-align: center;
-        }
+    .sidebar h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffeb70;
+      margin-bottom: 50px;
+      letter-spacing: 1px;
+    }
 
-        .sidebar a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 12px 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            transition: background 0.3s;
-        }
+    .sidebar a {
+      display: block;
+      width: 80%;
+      text-align: center;
+      color: white;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px 10px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
 
-        .sidebar a:hover {
-            background-color: #003080;
-        }
+    .sidebar a:hover {
+      background: #ffda47;
+      color: #004aad;
+      font-weight: 600;
+      transform: translateY(-3px);
+    }
 
-        .content {
-            margin-left: 240px;
-            padding: 30px;
-        }
+    /* Main content */
+    .content {
+      margin-left: 260px;
+      padding: 40px;
+    }
 
-        h1 {
-            color: #004aad;
-            margin-bottom: 30px;
-        }
+    h1 {
+      font-size: 30px;
+      color: #004aad;
+      margin-bottom: 40px;
+    }
 
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
+    h1 span {
+      color: #ffcc00;
+      font-weight: 700;
+    }
 
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center;
-        }
+    /* Dashboard cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 25px;
+      margin-bottom: 50px;
+    }
 
-        .card h3 {
-            color: #004aad;
-            font-size: 22px;
-        }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 6px 20px rgba(0, 84, 200, 0.1);
+      text-align: center;
+      transition: 0.3s;
+      border: 2px solid #e0ecff;
+    }
 
-        .card p {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 25px rgba(0, 84, 200, 0.15);
+    }
 
-        .quick-links {
-            margin-top: 40px;
-        }
+    .card h3 {
+      color: #004aad;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
 
-        .quick-links a {
-            display: inline-block;
-            background-color: #004aad;
-            color: white;
-            padding: 12px 20px;
-            margin-right: 10px;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: 0.3s;
-        }
+    .card p {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffb300;
+    }
 
-        .quick-links a:hover {
-            background-color: #003080;
-        }
-    </style>
+    /* Quick links (buttons bawah) */
+    .quick-links {
+      text-align: center;
+    }
+
+    .quick-links a {
+      display: inline-block;
+      background-color: #004aad;
+      color: #fff;
+      padding: 13px 28px;
+      margin: 10px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .quick-links a:hover {
+      background-color: #003080;
+      transform: translateY(-2px);
+    }
+
+  </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-     <div class="sidebar">
-        <h2>Beyond2U</h2>
-        <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
-        <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a> <!-- changed -->
-        <a href="{% url 'manage_requests' %}">📋 Manage Requests</a>
-        <a href="{% url 'reports' %}">📊 Reports</a>
-        <a href="{% url 'logout' %}">🚪 Logout</a>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
+    <a href="{% url 'manage_requests' %}">📋 Manage Requests</a>
+    <a href="{% url 'assign_task' %}">🧰 Assign Task</a>  <!-- ✅ Added link -->
+    <a href="{% url 'reports' %}">📊 Reports</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+    <h1>Welcome, Team Lead <span>{{ request.user.username|title }}</span> 👋</h1>
+
+    <!-- Dashboard Cards -->
+    <div class="cards">
+      <div class="card">
+        <h3>Total Engineers</h3>
+        <p>{{ total_engineers }}</p>
+      </div>
+      <div class="card">
+        <h3>Total Tasks</h3>
+        <p>{{ total_tasks }}</p>
+      </div>
+      <div class="card">
+        <h3>Pending Approvals</h3>
+        <p>{{ pending_tasks }}</p>
+      </div>
+      <div class="card">
+        <h3>Completed Tasks</h3>
+        <p>{{ completed_tasks }}</p>
+      </div>
     </div>
 
-
-    <!-- Main Content -->
-    <div class="content">
-        <h1>Welcome, {{ request.user.username }} 👋</h1>
-
-        <!-- Dashboard Cards -->
-        <div class="cards">
-            <div class="card">
-                <h3>Total Engineers</h3>
-                <p>{{ total_engineers }}</p>
-            </div>
-            <div class="card">
-                <h3>Total Tasks</h3>
-                <p>{{ total_tasks }}</p>
-            </div>
-            <div class="card">
-                <h3>Pending Approvals</h3>
-                <p>{{ pending_tasks }}</p>
-            </div>
-            <div class="card">
-                <h3>Completed Tasks</h3>
-                <p>{{ completed_tasks }}</p>
-            </div>
-        </div>
-
-       <div class="quick-links">
-        <a href="{% url 'manage_engineers' %}">+ Create Engineer Account</a> <!-- changed -->
-        <a href="{% url 'reports' %}">Generate Reports</a>
+    <!-- Quick Links -->
+    <div class="quick-links">
+      <a href="{% url 'manage_engineers' %}">+ Create Engineer Account</a>
+      <a href="{% url 'assign_task' %}">🧰 Assign Task</a> <!-- ✅ Added here too -->
+      <a href="{% url 'reports' %}">Generate Reports</a>
     </div>
-
-    </div>
+  </div>
 
 </body>
 </html>

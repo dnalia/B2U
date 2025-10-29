@@ -8,76 +8,114 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
         }
 
         body {
             display: flex;
             min-height: 100vh;
-            background: linear-gradient(135deg, #004aad, #5c9eff);
+            background: linear-gradient(135deg, #001f4d, #004aad, #4ea1ff);
+            overflow: hidden;
         }
 
+        /* Floating glowing blobs */
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.4;
+            z-index: 0;
+        }
+
+        .circle1 {
+            width: 400px;
+            height: 400px;
+            background: #00bfff;
+            top: -100px;
+            left: -100px;
+        }
+
+        .circle2 {
+            width: 500px;
+            height: 500px;
+            background: #ffd84e;
+            bottom: -150px;
+            right: -100px;
+        }
+
+        /* Sidebar */
         .sidebar {
             width: 380px;
-            background-color: rgba(255, 255, 255, 0.1);
             color: #fff;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 60px 20px;
-            backdrop-filter: blur(6px);
+            padding: 60px 25px;
             position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .sidebar h1 {
-            font-size: 34px;
-            margin-bottom: 20px;
+            font-size: 36px;
+            margin-bottom: 18px;
             letter-spacing: 1px;
+            background: linear-gradient(45deg, #fff, #ffdd57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .sidebar p {
             font-size: 15px;
-            color: #f0f4f9;
+            color: #e7edff;
             max-width: 280px;
             margin-bottom: 40px;
-            line-height: 1.6;
+            line-height: 1.7;
         }
 
         .sidebar-footer {
             position: absolute;
             bottom: 20px;
             font-size: 13px;
-            color: #cfe0ff;
+            color: #cfdfff;
         }
 
+        /* Login area */
         .login-container {
             flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 40px;
-            background-color: #f8faff;
+            background: transparent;
+            z-index: 1;
         }
 
         .login-box {
-            background-color: #fff;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
             padding: 50px 45px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
             width: 420px;
             text-align: center;
-            transition: 0.3s;
+            color: white;
+            position: relative;
+            animation: fadeIn 0.8s ease;
         }
 
-        .login-box:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .login-box h2 {
-            color: #004aad;
+            color: #fff;
             margin-bottom: 35px;
             font-size: 26px;
             font-weight: 600;
@@ -91,7 +129,7 @@
         .input-group label {
             display: block;
             margin-bottom: 6px;
-            color: #333;
+            color: #f0f3ff;
             font-weight: 500;
         }
 
@@ -99,53 +137,62 @@
         .input-group select {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            border: none;
+            border-radius: 10px;
             font-size: 14px;
-            transition: border-color 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+            color: #222;
+            transition: box-shadow 0.3s, transform 0.2s;
         }
 
         .input-group input:focus,
         .input-group select:focus {
             outline: none;
-            border-color: #004aad;
-            box-shadow: 0 0 4px rgba(0, 74, 173, 0.2);
+            box-shadow: 0 0 8px #00bfff;
+            transform: scale(1.02);
         }
 
         button {
             width: 100%;
             padding: 13px;
-            background-color: #004aad;
+            background: linear-gradient(90deg, #00bfff, #0078ff);
             color: #fff;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 191, 255, 0.4);
         }
 
         button:hover {
-            background-color: #003080;
+            background: linear-gradient(90deg, #ffdd57, #ffba00);
+            color: #003366;
+            box-shadow: 0 4px 20px rgba(255, 221, 87, 0.5);
         }
 
-        /* ✅ Mesej error tanpa pangkah */
+        /* Error messages */
         .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c2c7;
-            border-radius: 6px;
+            background: rgba(255, 67, 67, 0.15);
+            border: 1px solid rgba(255, 100, 100, 0.4);
+            border-radius: 10px;
             padding: 12px 16px;
             margin-bottom: 20px;
             text-align: left;
+            color: #ffe4e4;
             font-size: 14px;
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
 <body>
+    <div class="bg-circle circle1"></div>
+    <div class="bg-circle circle2"></div>
+
     <div class="sidebar">
         <h1>Beyond2U</h1>
-        <p>Welcome to Beyond2U Inventory System.<br>Login to continue.</p>
+        <p>Welcome to Beyond2U Inventory System.<br>Login to continue managing your operations.</p>
         <div class="sidebar-footer">© 2025 Beyond2U</div>
     </div>
 
@@ -153,12 +200,9 @@
         <div class="login-box">
             <h2>Sign In</h2>
 
-            <!-- ✅ Mesej Error Django -->
             {% if messages %}
                 {% for message in messages %}
-                    <div class="error-message">
-                        {{ message }}
-                    </div>
+                    <div class="error-message">{{ message }}</div>
                 {% endfor %}
             {% endif %}
 

@@ -1,229 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Manage Engineers - Beyond2U</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f6fa;
-        }
+  <meta charset="UTF-8">
+  <title>Manage Engineers - Beyond2U</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #2d2d2d;
+    }
 
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 220px;
-            height: 100%;
-            background-color: #004aad;
-            color: white;
-            padding: 20px;
-        }
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #004aad, #5c9eff);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 30px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+      border-top-right-radius: 25px;
+      border-bottom-right-radius: 25px;
+    }
 
-        .sidebar h2 {
-            margin-bottom: 40px;
-            font-size: 22px;
-            text-align: center;
-        }
+    .sidebar h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffeb70;
+      margin-bottom: 50px;
+      letter-spacing: 1px;
+    }
 
-        .sidebar a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 12px 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            transition: background 0.3s;
-        }
+    .sidebar a {
+      display: block;
+      width: 80%;
+      text-align: center;
+      color: white;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px 10px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
 
-        .sidebar a:hover {
-            background-color: #003080;
-        }
+    .sidebar a:hover {
+      background: #ffda47;
+      color: #004aad;
+      font-weight: 600;
+      transform: translateY(-3px);
+    }
 
-        .content {
-            margin-left: 240px;
-            padding: 30px;
-        }
+    /* Main content */
+    .content {
+      margin-left: 260px;
+      padding: 40px;
+    }
 
-        h1 {
-            color: #004aad;
-            margin-bottom: 20px;
-        }
+    h1 {
+      font-size: 30px;
+      color: #004aad;
+      margin-bottom: 30px;
+    }
 
-        .top-actions {
-            margin-bottom: 20px;
-        }
+    /* Button and form area */
+    .top-actions button {
+      background-color: #004aad;
+      color: white;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
 
-        .top-actions button {
-            background-color: #004aad;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+    .top-actions button:hover {
+      background-color: #003080;
+      transform: translateY(-2px);
+    }
 
-        .top-actions button:hover {
-            background-color: #003080;
-        }
+    #createEngineerForm {
+      display: none;
+      background: white;
+      padding: 25px;
+      margin: 25px 0;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 84, 200, 0.1);
+      border: 2px solid #e0ecff;
+    }
 
-        /* Form styling */
-        #createEngineerForm {
-            display: none; /* hidden by default */
-            background: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+    #createEngineerForm input,
+    #createEngineerForm select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
 
-        #createEngineerForm input, #createEngineerForm select {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
+    #createEngineerForm button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
 
-        #createEngineerForm button {
-            background-color: #28a745;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+    #createEngineerForm button:hover {
+      background-color: #218838;
+    }
 
-        #createEngineerForm button:hover {
-            background-color: #218838;
-        }
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0, 84, 200, 0.1);
+      border: 2px solid #e0ecff;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+    th, td {
+      padding: 14px 18px;
+      text-align: left;
+    }
 
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-        }
+    th {
+      background-color: #004aad;
+      color: white;
+      font-size: 16px;
+      letter-spacing: 0.3px;
+    }
 
-        th {
-            background-color: #004aad;
-            color: white;
-        }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
 
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
+    .action-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: white;
+      margin-right: 6px;
+      font-size: 14px;
+      transition: 0.3s;
+    }
 
-        .action-btn {
-            padding: 6px 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            color: white;
-            margin-right: 5px;
-            font-size: 14px;
-        }
+    .edit-btn {
+      background-color: #f0ad4e;
+    }
 
-        .edit-btn {
-            background-color: #f0ad4e;
-        }
+    .edit-btn:hover {
+      background-color: #ec971f;
+      transform: translateY(-1px);
+    }
 
-        .edit-btn:hover {
-            background-color: #ec971f;
-        }
+    .delete-btn {
+      background-color: #d9534f;
+    }
 
-        .delete-btn {
-            background-color: #d9534f;
-        }
+    .delete-btn:hover {
+      background-color: #c9302c;
+      transform: translateY(-1px);
+    }
 
-        .delete-btn:hover {
-            background-color: #c9302c;
-        }
-    </style>
-    <script>
-        function toggleForm() {
-            const form = document.getElementById('createEngineerForm');
-            if(form.style.display === 'none') {
-                form.style.display = 'block';
-            } else {
-                form.style.display = 'none';
-            }
-        }
-    </script>
+  </style>
+
+  <script>
+    function toggleForm() {
+      const form = document.getElementById('createEngineerForm');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+  </script>
 </head>
+
 <body>
 
-<div class="sidebar">
+  <!-- Sidebar -->
+  <div class="sidebar">
     <h2>Beyond2U</h2>
     <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
     <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
     <a href="{% url 'manage_requests' %}">📋 Manage Requests</a>
+    <a href="{% url 'assign_task' %}">🧰 Assign Task</a>
     <a href="{% url 'reports' %}">📊 Reports</a>
     <a href="{% url 'logout' %}">🚪 Logout</a>
-</div>
+  </div>
 
-<div class="content">
+  <!-- Main Content -->
+  <div class="content">
     <h1>Manage Engineers</h1>
 
     <div class="top-actions">
-        <button onclick="toggleForm()">+ Create New Engineer</button>
+      <button onclick="toggleForm()">+ Create New Engineer</button>
     </div>
 
-    <!-- Inline form -->
     <div id="createEngineerForm">
-        <form method="POST" action="{% url 'manage_engineers' %}">
-            {% csrf_token %}
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <select name="role" required>
-                <option value="SystemEngineer">System Engineer</option>
-                <option value="TeamLead">Team Lead</option>
-                <option value="Admin">Admin</option>
-            </select>
-            <button type="submit">Create Engineer</button>
-        </form>
+      <form method="POST" action="{% url 'manage_engineers' %}">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <select name="role" required>
+          <option value="SystemEngineer">System Engineer</option>
+        </select>
+        <button type="submit">Create Engineer</button>
+
+      </form>
     </div>
+
+    <br>
+   <br>
 
     <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for engineer in engineers %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ engineer.username }}</td>
-                <td>{{ engineer.email }}</td>
-                <td>{{ engineer.role }}</td>
-                <td>
-                    <a href="{% url 'edit_engineer' engineer.id %}" class="action-btn edit-btn">Edit</a>
-                    <a href="{% url 'delete_engineer' engineer.id %}" class="action-btn delete-btn">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" style="text-align:center;">No engineers found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for engineer in engineers %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ engineer.username }}</td>
+          <td>{{ engineer.email }}</td>
+          <td>{{ engineer.role }}</td>
+          <td>
+            <a href="{% url 'edit_engineer' engineer.id %}" class="action-btn edit-btn">Edit</a>
+            <a href="{% url 'delete_engineer' engineer.id %}" class="action-btn delete-btn">Delete</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center;">No engineers found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
-
-</div>
+  </div>
 
 </body>
 </html>

@@ -11,10 +11,66 @@ import pandas as pd
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from django.http import FileResponse
-from .models import User, TechRefresh, TechRefreshRequest, Inventory, Request, Notification
+from .models import User, TechRefresh, TechRefreshRequest, Inventory, Request, Notification, AssignedTask
 import io
 from django.http import JsonResponse
 from django.core.serializers import serialize
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Engineer, AssignedTask
+from django.utils import timezone
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+from .models import AssignedTask, Engineer  # pastikan nama model betul
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+from .models import User, AssignedTask, Notification
+
+@login_required
+def task_history(request):
+    # Ambil semua assigned tasks
+    tasks = AssignedTask.objects.select_related('engineer').order_by('-assigned_date')
+
+    # Kalau nak filter ikut engineer name:
+    query = request.GET.get('q')
+    if query:
+        tasks = tasks.filter(engineer__username__icontains=query)
+
+    return render(request, 'task_history.html', {'tasks': tasks})
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Engineer, AssignedTask
+from django.utils import timezone
+
+def assign_task(request):
+    engineers = Engineer.objects.all()  # penting untuk populate table!
+
+    if request.method == 'POST':
+        engineer_name = request.POST.get('engineer')
+        engineer = Engineer.objects.filter(name=engineer_name).first()
+        if not engineer:
+            return redirect('assign_task')
+
+        AssignedTask.objects.create(
+            engineer=engineer,
+            barcode=request.POST.get('barcode'),
+            serial_number=request.POST.get('serial_number'),
+            username=request.POST.get('username'),
+            phone_number=request.POST.get('phone_number'),
+            lan_id=request.POST.get('lan_id'),
+            location=request.POST.get('location'),
+            os=request.POST.get('os'),
+            replacement_type=request.POST.get('replacement_type'),
+            assigned_date=timezone.now(),
+        )
+        return redirect('assign_task')
+
+    return render(request, 'assign_task.html', {'engineers': engineers})
+
 
 # -------------------------
 # Helper decorator: require_role
@@ -617,10 +673,24 @@ def mark_as_read(request, notification_id):
 
 @login_required
 def view_request_details(request, req_id):
-    request_obj = get_object_or_404(TechRefreshRequest, id=req_id)
+    # Try to find in Request first
+    request_obj = Request.objects.filter(id=req_id).first()
+    request_type = "Request"
+
+    # If not found, try TechRefreshRequest
+    if not request_obj:
+        request_obj = TechRefreshRequest.objects.filter(id=req_id).first()
+        request_type = "TechRefreshRequest"
+
+    # If still not found, return error
+    if not request_obj:
+        messages.error(request, "Request not found.")
+        return redirect('manage_requests')
 
     context = {
         'request_obj': request_obj,
+        'request_type': request_type,
     }
 
     return render(request, 'view_request_details.html', context)
+

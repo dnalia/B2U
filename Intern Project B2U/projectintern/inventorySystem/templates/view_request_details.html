@@ -4,14 +4,47 @@
   <meta charset="UTF-8">
   <title>Request Details</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #eef2f7; padding: 40px; }
-    .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    h2 { color: #004aad; margin-bottom: 20px; }
-    p { margin: 10px 0; font-size: 15px; }
-    a { color: #004aad; text-decoration: none; font-weight: 500; }
-    a:hover { text-decoration: underline; }
-    .back-btn { display: inline-block; margin-bottom: 20px; background: #004aad; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; }
-    .back-btn:hover { background: #003580; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eef2f7;
+      padding: 40px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #004aad;
+      margin-bottom: 20px;
+    }
+    p {
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    a {
+      color: #004aad;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 20px;
+      background: #004aad;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+    .back-btn:hover {
+      background: #003580;
+    }
   </style>
 </head>
 <body>
@@ -19,15 +52,15 @@
     <a href="{% url 'manage_requests' %}" class="back-btn">← Back to Requests</a>
     <h2>Request Details</h2>
 
-    <p><strong>Engineer:</strong> {{ req.engineer.username }}</p>
-    <p><strong>Location:</strong> {{ req.location }}</p>
-    <p><strong>User:</strong> {{ req.user }}</p>
-    <p><strong>Status:</strong> {{ req.status }}</p>
-    <p><strong>Remarks:</strong> {{ req.remarks|default:"-" }}</p>
-    <p><strong>Submitted At:</strong> {{ req.submitted_at|date:"Y-m-d H:i" }}</p>
+    <p><strong>Engineer:</strong> {{ request_obj.engineer.username }}</p>
+    <p><strong>Location:</strong> {{ request_obj.location }}</p>
+    <p><strong>User:</strong> {{ request_obj.user }}</p>
+    <p><strong>Status:</strong> {{ request_obj.status }}</p>
+    <p><strong>Remarks:</strong> {{ request_obj.remarks|default:"-" }}</p>
+    <p><strong>Submitted At:</strong> {{ request_obj.submitted_at|date:"Y-m-d H:i" }}</p>
     <p><strong>Proof:</strong>
-      {% if req.proof %}
-        <a href="{{ req.proof.url }}" target="_blank">View Uploaded Proof</a>
+      {% if request_obj.proof %}
+        <a href="{{ request_obj.proof.url }}" target="_blank">View Uploaded Proof</a>
       {% else %}
         N/A
       {% endif %}

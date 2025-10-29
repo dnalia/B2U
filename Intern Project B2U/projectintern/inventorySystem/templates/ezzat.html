@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Team Lead Dashboard - Beyond2U</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fa;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background-color: #004aad;
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-size: 22px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #003080;
+        }
+
+        .content {
+            margin-left: 240px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #004aad;
+            margin-bottom: 30px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .card h3 {
+            color: #004aad;
+            font-size: 22px;
+        }
+
+        .card p {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .quick-links {
+            margin-top: 40px;
+        }
+
+        .quick-links a {
+            display: inline-block;
+            background-color: #004aad;
+            color: white;
+            padding: 12px 20px;
+            margin-right: 10px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .quick-links a:hover {
+            background-color: #003080;
+        }
+
+        /* 🌟 Ezzat Image (fullscreen feel tapi bukan over besar) */
+        .banner-container {
+            position: fixed;
+            top: 50%;
+            left: 55%;
+            transform: translate(-50%, -50%);
+            display: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 5;
+        }
+
+        .banner-container.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        .banner {
+            width: 85vw; /* besar tapi tak sampai hujung screen */
+            max-width: 1300px;
+            border-radius: 10px;
+        }
+
+        /* 🌟 GIF overlay */
+        .gif-popup {
+            position: fixed;
+            top: 50%;
+            left: 55%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 6;
+            text-align: center;
+        }
+
+        .gif-popup.visible {
+            display: block;
+        }
+
+        .gif-popup img {
+            width: 400px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Beyond2U</h2>
+        <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
+        <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
+        <a href="{% url 'manage_requests' %}">📋 Manage Requests</a>
+        <a href="{% url 'reports' %}">📊 Reports</a>
+        <a href="{% url 'logout' %}">🚪 Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <h1>Welcome, {{ request.user.username }} 👋</h1>
+
+        <!-- Ezzat Image -->
+        <div class="banner-container" id="bannerContainer">
+            <img src="{% static 'ezzat.jpg' %}" alt="Ezzat Image" class="banner" id="ezzatImage">
+        </div>
+
+        <!-- GIF Overlay -->
+        <div class="gif-popup" id="gifPopup">
+            <img src="{% static 'apiezzatlagi.gif' %}" alt="Surprise GIF">
+        </div>
+
+        <!-- Dashboard Cards -->
+        <div class="cards">
+            <div class="card"><h3>Total Engineers</h3><p>{{ total_engineers }}</p></div>
+            <div class="card"><h3>Total Tasks</h3><p>{{ total_tasks }}</p></div>
+            <div class="card"><h3>Pending Approvals</h3><p>{{ pending_tasks }}</p></div>
+            <div class="card"><h3>Completed Tasks</h3><p>{{ completed_tasks }}</p></div>
+        </div>
+
+        <div class="quick-links">
+            <a href="{% url 'manage_engineers' %}">+ Create Engineer Account</a>
+            <a href="{% url 'reports' %}">Generate Reports</a>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener("load", () => {
+            const bannerContainer = document.getElementById("bannerContainer");
+            const gifPopup = document.getElementById("gifPopup");
+
+            // 1️⃣ Muncul gambar Ezzat lepas 1s
+            setTimeout(() => {
+                bannerContainer.classList.add("visible");
+
+                // 2️⃣ Lepas 1s lagi → muncul gif overlay
+                setTimeout(() => {
+                    gifPopup.classList.add("visible");
+                }, 1000);
+            }, 2000);
+        });
+    </script>
+
+</body>
+</html>

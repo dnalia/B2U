@@ -71,4 +71,9 @@ urlpatterns = [
 
     # FEEDBACK
     path('inventory/send-feedback/', views.send_feedback, name='send_feedback'),
+
+    path('assign-task/', views.assign_task, name='assign_task'),
+    
+    path('assign-task/', views.assign_task, name='assign_task'),
+    path('task-history/', views.task_history, name='task_history'),
 ]

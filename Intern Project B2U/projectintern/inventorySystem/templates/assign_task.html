@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Assign Task - Beyond2U</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #2d2d2d;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #004aad, #5c9eff);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 30px;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+      border-top-right-radius: 25px;
+      border-bottom-right-radius: 25px;
+    }
+
+    .sidebar h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffeb70;
+      margin-bottom: 50px;
+      letter-spacing: 1px;
+    }
+
+    .sidebar a {
+      display: block;
+      width: 80%;
+      text-align: center;
+      color: white;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px 10px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar a:hover {
+      background: #ffda47;
+      color: #004aad;
+      font-weight: 600;
+      transform: translateY(-3px);
+    }
+
+    /* Main Content */
+    .content {
+      margin-left: 260px;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 30px;
+      color: #004aad;
+      margin-bottom: 30px;
+    }
+
+    .search-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .search-bar input {
+      width: 300px;
+      padding: 10px 15px;
+      border: 2px solid #004aad;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0, 84, 200, 0.1);
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #e0ecff;
+    }
+
+    th {
+      background-color: #004aad;
+      color: white;
+      font-size: 16px;
+    }
+
+    tr:hover {
+      background-color: #f1f5ff;
+    }
+
+    .action-btn {
+      background-color: #004aad;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .action-btn:hover {
+      background-color: #003080;
+      transform: translateY(-2px);
+    }
+
+    .history-btn {
+      background-color: #ffcc00;
+      color: #004aad;
+      margin-left: 8px;
+    }
+
+    .history-btn:hover {
+      background-color: #ffda47;
+    }
+
+    /* Popup Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 25px;
+      border-radius: 16px;
+      width: 450px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      border-top: 5px solid #004aad;
+    }
+
+    .modal-content h2 {
+      color: #004aad;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .modal-content label {
+      font-weight: 600;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .modal-content input, .modal-content select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+      text-align: right;
+    }
+
+    .close-btn {
+      background: #ccc;
+      color: #333;
+      margin-right: 10px;
+    }
+
+    .close-btn:hover {
+      background: #999;
+    }
+
+    .submit-btn {
+      background: #004aad;
+      color: white;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'manage_engineers' %}">👥 Manage Engineers</a>
+    <a href="{% url 'manage_requests' %}">📋 Manage Requests</a>
+    <a href="{% url 'assign_task' %}">🧰 Assign Task</a>
+    <a href="{% url 'reports' %}">📊 Reports</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <h1>Assign Task to Engineers 👷‍♂️</h1>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search engineer name...">
+    </div>
+
+    <table id="engineerTable">
+      <thead>
+        <tr>
+          <th>Engineer Name</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for engineer in engineers %}
+        <tr>
+          <td>{{ engineer.name }}</td>
+          <td>
+            <button class="action-btn" onclick="openModal('{{ engineer.name }}')">Assign Task</button>
+            <a href="{% url 'task_history' engineer.id %}" class="action-btn history-btn">View History</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div id="assignModal" class="modal">
+    <div class="modal-content">
+      <h2>Assign Task</h2>
+      <form method="POST" action="{% url 'assign_task' %}">
+        {% csrf_token %}
+        <label>Engineer</label>
+        <input type="text" id="engineerName" name="engineer" readonly>
+
+        <label>Barcode</label>
+        <input type="text" name="barcode" required>
+
+        <label>Serial Number</label>
+        <input type="text" name="serial_number" required>
+
+        <label>Username</label>
+        <input type="text" name="username" required>
+
+        <label>Phone Number</label>
+        <input type="text" name="phone_number">
+
+        <label>LAN ID</label>
+        <input type="text" name="lan_id">
+
+        <label>Location</label>
+        <select name="location">
+          <option value="HQ">HQ</option>
+          <option value="Branch 1">Branch 1</option>
+          <option value="Branch 2">Branch 2</option>
+          <option value="Warehouse">Warehouse</option>
+        </select>
+
+        <label>OS</label>
+        <input type="text" name="os" value="Windows 10" readonly>
+
+        <label>Replacement Type</label>
+        <select name="replacement_type">
+          <option value="PC (Asset Refresh)">PC (Asset Refresh)</option>
+          <option value="Laptop (Tech Refresh)">Laptop (Tech Refresh)</option>
+          <option value="RAM (Parts Upgrade)">RAM (Parts Upgrade)</option>
+        </select>
+
+        <div class="modal-buttons">
+          <button type="button" class="close-btn" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="submit-btn">Assign</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal(engineerName) {
+      document.getElementById("assignModal").style.display = "block";
+      document.getElementById("engineerName").value = engineerName;
+    }
+
+    function closeModal() {
+      document.getElementById("assignModal").style.display = "none";
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById("assignModal");
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    // Search filter
+    document.getElementById("searchInput").addEventListener("keyup", function() {
+      const filter = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#engineerTable tbody tr");
+      rows.forEach(row => {
+        const name = row.cells[0].textContent.toLowerCase();
+        row.style.display = name.includes(filter) ? "" : "none";
+      });
+    });
+  </script>
+
+</body>
+</html>

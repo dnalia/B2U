@@ -1,176 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Notifications - Beyond2U</title>
-    <style>
-        /* ===== Global Style ===== */
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f4f6fa;
-        }
+  <meta charset="UTF-8">
+  <title>Notifications - Beyond2U</title>
+  <style>
+    /* ===== Global Reset ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+    }
 
-        /* ===== Sidebar ===== */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 220px;
-            height: 100%;
-            background-color: #004aad;
-            color: white;
-            padding: 20px;
-        }
-        .sidebar h2 {
-            margin-bottom: 40px;
-            font-size: 22px;
-            text-align: center;
-        }
-        .sidebar a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 12px 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            transition: background 0.3s;
-        }
-        .sidebar a:hover {
-            background-color: #003080;
-        }
+    body {
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #333;
+      display: flex;
+      min-height: 100vh;
+    }
 
-        /* ===== Content ===== */
-        .content {
-            margin-left: 240px;
-            padding: 30px;
-        }
-        h1 {
-            color: #004aad;
-            margin-bottom: 20px;
-        }
-        h2 {
-            color: #004aad;
-            margin-top: 30px;
-            margin-bottom: 15px;
-        }
+    /* ===== Sidebar ===== */
+    .sidebar {
+      width: 230px;
+      background: linear-gradient(180deg, #004aad, #5c9eff);
+      color: white;
+      padding: 35px 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 4px 0 18px rgba(0, 0, 0, 0.1);
+      border-top-right-radius: 22px;
+      border-bottom-right-radius: 22px;
+    }
 
-        /* ===== Notifications Container ===== */
-        .notifications-container {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            max-width: 900px;
-        }
+    .sidebar h2 {
+      font-size: 26px;
+      text-align: center;
+      margin-bottom: 40px;
+      color: #ffeb70;
+      text-shadow: 0 0 6px rgba(255,255,255,0.3);
+    }
 
-        /* ===== Individual Notification ===== */
-        .notification {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #f4f7fc;
-            border-radius: 10px;
-            padding: 15px 20px;
-            margin: 10px 0;
-            transition: 0.3s;
-        }
-        .notification:hover {
-            background-color: #eaf0ff;
-        }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 15px;
+      margin-bottom: 12px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.15);
+    }
 
-        .message {
-            color: #333;
-            font-size: 16px;
-        }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background: #ffda47;
+      color: #004aad;
+      font-weight: 600;
+      transform: translateY(-3px);
+    }
 
-        .time {
-            color: #777;
-            font-size: 13px;
-        }
+    /* ===== Content ===== */
+    .content {
+      flex: 1;
+      padding: 50px 60px;
+      animation: fadeIn 0.7s ease-in-out;
+    }
 
-        /* ===== Buttons ===== */
-        .btn-mark {
-            background-color: #004aad;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-mark:hover {
-            background-color: #003080;
-        }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
 
-        /* ===== Empty state ===== */
-        .empty {
-            text-align: center;
-            color: #888;
-            font-style: italic;
-            margin-top: 30px;
-        }
+    h1 {
+      color: #004aad;
+      font-size: 32px;
+      margin-bottom: 25px;
+    }
 
-        /* ===== Read notification style ===== */
-        .read {
-            opacity: 0.7;
-            background-color: #f2f2f2;
-        }
+    h2 {
+      color: #004aad;
+      margin-top: 20px;
+      margin-bottom: 15px;
+      font-size: 22px;
+    }
 
-        /* ===== Back button ===== */
-        .back-btn {
-            display: inline-block;
-            margin-top: 20px;
-            background-color: #004aad;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-        .back-btn:hover {
-            background-color: #003080;
-        }
-    </style>
+    /* ===== Notification Container ===== */
+    .notifications-container {
+      background: #fff;
+      padding: 25px 30px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      max-width: 900px;
+    }
+
+    /* ===== Notification Card ===== */
+    .notification {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fbff;
+      border: 2px solid #e0ecff;
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .notification:hover {
+      transform: translateY(-3px);
+      background-color: #fffae6;
+      box-shadow: 0 5px 14px rgba(0, 84, 200, 0.12);
+    }
+
+    .notification.read {
+      opacity: 0.75;
+      background-color: #f2f2f2;
+    }
+
+    .message {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .time {
+      font-size: 13px;
+      color: #777;
+    }
+
+    /* ===== Buttons ===== */
+    .btn-mark {
+      background-color: #004aad;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .btn-mark:hover {
+      background-color: #003080;
+      transform: translateY(-2px);
+    }
+
+    /* ===== Empty State ===== */
+    .empty {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+      margin-top: 30px;
+    }
+
+    /* ===== Back Button ===== */
+    .back-btn {
+      display: inline-block;
+      margin-top: 30px;
+      background-color: #004aad;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: #003080;
+      transform: translateY(-2px);
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <h2>Beyond2U</h2>
-        <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
-        <a href="{% url 'create_task' %}">➕ Create Task</a>
-        <a href="{% url 'my_submissions' %}">📄 My Submissions</a>
-        <a href="{% url 'notifications' %}" style="background-color:#003080;">🔔 Notifications</a>
-        <a href="{% url 'logout' %}">🚪 Logout</a>
-    </div>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Beyond2U</h2>
+    <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
+    <a href="{% url 'create_task' %}">➕ Create Task</a>
+    <a href="{% url 'my_submissions' %}">📄 My Submissions</a>
+    <a href="{% url 'notifications' %}" class="active">🔔 Notifications</a>
+    <a href="{% url 'logout' %}">🚪 Logout</a>
+  </div>
 
-    <!-- Content -->
-    <div class="content">
-        <h1>🔔 Notifications</h1>
+  <!-- Content -->
+  <div class="content">
+    <h1>🔔 Notifications</h1>
 
-        <div class="notifications-container">
-            <h2>Recent Updates</h2>
+    <div class="notifications-container">
+      <h2>Recent Updates</h2>
 
-            {% for n in notifications %}
-                <div class="notification {% if n.is_read %}read{% endif %}">
-                    <div>
-                        <div class="message">{{ n.message }}</div>
-                        <div class="time">{{ n.created_at|timesince }} ago</div>
-                    </div>
-                    {% if not n.is_read %}
-                        <a href="{% url 'mark_as_read' n.id %}">
-                            <button class="btn-mark">Mark as Read</button>
-                        </a>
-                    {% endif %}
-                </div>
-            {% empty %}
-                <div class="empty">No new notifications.</div>
-            {% endfor %}
+      {% for n in notifications %}
+      <div class="notification {% if n.is_read %}read{% endif %}">
+        <div>
+          <div class="message">{{ n.message }}</div>
+          <div class="time">{{ n.created_at|timesince }} ago</div>
         </div>
-
-        <a href="{% url 'systemengineer_dashboard' %}" class="back-btn">← Back to Dashboard</a>
+        {% if not n.is_read %}
+        <a href="{% url 'mark_as_read' n.id %}">
+          <button class="btn-mark">Mark as Read</button>
+        </a>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="empty">No new notifications.</div>
+      {% endfor %}
     </div>
+
+    
+  </div>
 
 </body>
 </html>
