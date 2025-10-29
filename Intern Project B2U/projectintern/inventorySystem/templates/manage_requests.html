@@ -221,31 +221,12 @@
         {% for req in requests %}
         <tr>
           <td>{{ forloop.counter }}</td>
-<<<<<<< HEAD
-          <td>{{ req.engineer.username|default:"-" }}</td>
-          <td>{{ req.location|default:"-" }}</td>
-          <td>{{ req.user|default:"-" }}</td>
-          <td class="status-{{ req.status|lower }}">{{ req.status|default:"-" }}</td>
-          <td>
-              {% if req.created_at %}
-                {{ req.created_at|date:"Y-m-d H:i" }}
-              {% elif req.submitted_at %}
-                {{ req.submitted_at|date:"Y-m-d H:i" }}
-              {% else %}
-                -
-              {% endif %}
-            </td>
-
-
-          <td>{% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View</a>{% else %}N/A{% endif %}</td>
-=======
           <td>{{ req.engineer }}</td>
           <td>{{ req.location }}</td>
           <td>{{ req.user }}</td>
           <td class="status-{{ req.status|lower }}">{{ req.status }}</td>
           <td>{{ req.created_at|date:"Y-m-d H:i" }}</td>
           <td>{% if req.proof %}<a href="{{ req.proof }}" target="_blank">View</a>{% else %}N/A{% endif %}</td>
->>>>>>> d2dbd0137e67d49de8a8efc31afe3e87562905ea
           <td>
             <button class="btn view-btn" onclick="openPopup('req-{{ req.id }}')">View</button>
             {% if req.status == "Pending" %}
@@ -268,24 +249,6 @@
     <div class="popup-content">
       <span class="close-btn" onclick="closePopup('req-{{ req.id }}')">&times;</span>
       <h2>Request Details</h2>
-<<<<<<< HEAD
-      <p><strong>Engineer:</strong> {{ req.engineer.username|default:"-" }}</p>
-      <p><strong>User:</strong> {{ req.user|default:"-" }}</p>
-      <p><strong>Location:</strong> {{ req.location|default:"-" }}</p>
-      <p><strong>Status:</strong> {{ req.status|default:"-" }}</p>
-      <p><strong>Submitted At:</strong> {{ req.created_at|date:"Y-m-d H:i" }}</p>
-      <p><strong>Old Hostname:</strong> {{ req.old_hostname|default:"-" }}</p>
-      <p><strong>New Hostname:</strong> {{ req.new_hostname|default:"-" }}</p>
-      <p><strong>Old Serial Number:</strong> {{ req.old_serial|default:"-" }}</p>
-      <p><strong>New Serial Number:</strong> {{ req.new_serial|default:"-" }}</p>
-      <p><strong>Rescheduled Date:</strong> {{ req.rescheduled_date|default:"-" }}</p>
-      <p><strong>Format Status:</strong> {{ req.format_status|default:"-" }}</p>
-      <p><strong>Reason (if not formatted):</strong> {{ req.reason_not_formatted|default:"-" }}</p>
-      <p><strong>Upload Status:</strong> {{ req.upload_status|default:"Not Yet" }}</p>
-      <p><strong>Reason (if not uploaded):</strong> {{ req.reason_not_uploaded|default:"-" }}</p>
-      <p><strong>Remarks:</strong> {{ req.remarks|default:"-" }}</p>
-      <p><strong>Proof:</strong> {% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View Uploaded Proof</a>{% else %}N/A{% endif %}</p>
-=======
       <p><strong>Engineer:</strong> {{ req.engineer }}</p>
       <p><strong>User:</strong> {{ req.user }}</p>
       <p><strong>Location:</strong> {{ req.location }}</p>
@@ -302,7 +265,6 @@
       <p><strong>Reason (if not uploaded):</strong> {{ req.reason_not_uploaded }}</p>
       <p><strong>Remarks:</strong> {{ req.remarks }}</p>
       <p><strong>Proof:</strong> {% if req.proof %}<a href="{{ req.proof }}" target="_blank">View Uploaded Proof</a>{% else %}N/A{% endif %}</p>
->>>>>>> 2cb237c (12)
     </div>
   </div>
   {% endfor %}
