@@ -204,7 +204,7 @@
         </td>
         <td>{{ task.created_at|date:"d M Y, h:i A" }}</td>
         <td>
-          <a href="{% url 'task_detail' 'request' task.id %}" class="btn btn-view">View</a>
+          <a href="{% url 'task_detail' task.id %}" class="btn btn-view">View</a>
 
           {% if task.status == "Pending" %}
             <a href="{% url 'edit_task' task.id %}" class="btn btn-edit">Edit</a>

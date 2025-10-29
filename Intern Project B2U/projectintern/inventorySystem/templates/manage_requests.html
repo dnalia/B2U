@@ -297,7 +297,7 @@ tr:hover {
       <p><strong>User:</strong> {{ req.user|default:"-" }}</p>
       <p><strong>Location:</strong> {{ req.location|default:"-" }}</p>
       <p><strong>Status:</strong> {{ req.status|default:"-" }}</p>
-      <p><strong>Submitted At:</strong> {{ req.submitted_at|date:"Y-m-d H:i" }}</p>
+      <p><strong>Submitted At:</strong> {{ req.created_at|date:"Y-m-d H:i" }}</p>
       <p><strong>Old Hostname:</strong> {{ req.old_hostname|default:"-" }}</p>
       <p><strong>New Hostname:</strong> {{ req.new_hostname|default:"-" }}</p>
       <p><strong>Old Serial Number:</strong> {{ req.old_serial|default:"-" }}</p>

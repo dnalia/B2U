@@ -143,7 +143,7 @@ class Request(models.Model):
     reason_not_formatted = models.TextField(blank=True, null=True)
     reason_not_uploaded = models.TextField(blank=True, null=True)
     remarks = models.TextField(blank=True, null=True)
-    proof = models.FileField(upload_to='proofs/', blank=True, null=True)
+    proof = models.FileField(upload_to='', blank=True, null=True)
 
     assigned_approver = models.ForeignKey(
         settings.AUTH_USER_MODEL,

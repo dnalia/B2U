@@ -243,12 +243,12 @@ Tech Refresh Replacements
 
       <div>
         <label>Old Serial Number:</label>
-        <input type="text" name="old_serial_number" placeholder="Enter old serial number">
+        <input type="text" name="old_serial" placeholder="Enter old serial number">
       </div>
 
       <div>
         <label>New Serial Number:</label>
-        <input type="text" name="new_serial_number" placeholder="Enter new serial number">
+        <input type="text" name="new_serial" placeholder="Enter new serial number">
       </div>
 
       <div>
@@ -258,7 +258,7 @@ Tech Refresh Replacements
 
       <div>
         <label>Date (If rescheduled):</label>
-        <input type="date" name="date_if_rescheduled">
+        <input type="date" name="rescheduled_date">
       </div>
 
       <div>
@@ -285,6 +285,12 @@ Tech Refresh Replacements
         <label>Remarks (if any):</label>
         <textarea name="remarks" rows="3" placeholder="Enter remarks"></textarea>
       </div>
+
+      <div class="full-width">
+        <label>Upload Proof (if any):</label>
+        <input type="file" name="proof" accept="image/*,application/pdf">
+    </div>
+
 
       <button type="submit">Submit Task</button>
     </form>

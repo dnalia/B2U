@@ -48,7 +48,7 @@ urlpatterns = [
 
     # My Submissions
     path('dashboard/systemengineer/my_submissions/', views.my_submissions, name='my_submissions'),
-    path('dashboard/systemengineer/my_submissions/<str:rtype>/<int:req_id>/view/',
+    path('dashboard/systemengineer/my_submissions/<int:req_id>/view/',
          views.view_request_details, name='task_detail'),
     path('dashboard/systemengineer/my_submissions/<int:task_id>/download/',
          views.download_task_pdf, name='download_task_pdf'),

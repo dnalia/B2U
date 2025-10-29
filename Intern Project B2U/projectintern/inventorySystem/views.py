@@ -216,6 +216,7 @@ def create_task(request):
         task_type = request.POST.get('task_type')
         location = request.POST.get('location')
         user_name = request.POST.get('user_name')
+
         old_barcode = request.POST.get('old_barcode')
         new_barcode = request.POST.get('new_barcode')
         old_serial = request.POST.get('old_serial')
@@ -223,10 +224,18 @@ def create_task(request):
         old_ip = request.POST.get('old_ip')
         new_ip = request.POST.get('new_ip')
         new_mac = request.POST.get('new_mac')
+        old_hostname = request.POST.get('old_hostname')
+        new_hostname = request.POST.get('new_hostname')
+
+        rescheduled_date = request.POST.get('rescheduled_date') or None
+        format_status = request.POST.get('format_status')
+        reason_not_formatted = request.POST.get('reason_not_formatted')
+        upload_status = request.POST.get('upload_status')
+        reason_not_uploaded = request.POST.get('reason_not_uploaded')
         remarks = request.POST.get('remarks')
-        approver_id = request.POST.get('assigned_approver')
         proof = request.FILES.get('proof')
 
+        approver_id = request.POST.get('assigned_approver')
         assigned_approver = None
         if approver_id:
             try:
@@ -246,6 +255,13 @@ def create_task(request):
             old_ip=old_ip,
             new_ip=new_ip,
             new_mac=new_mac,
+            old_hostname=old_hostname,
+            new_hostname=new_hostname,
+            rescheduled_date=rescheduled_date,
+            format_status=format_status,
+            reason_not_formatted=reason_not_formatted,
+            upload_status=upload_status,
+            reason_not_uploaded=reason_not_uploaded,
             remarks=remarks,
             proof=proof,
             assigned_approver=assigned_approver
@@ -700,7 +716,7 @@ def view_request_details(request, req_id):
     # If still not found, return error
     if not request_obj:
         messages.error(request, "Request not found.")
-        return redirect('manage_requests')
+        return redirect('my_submissions')
 
     context = {
         'request_obj': request_obj,
