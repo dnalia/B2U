@@ -171,13 +171,25 @@ def homepage(request):
 # ==============================
 @require_role('TeamLead')
 def teamlead_dashboard(request):
+    # Kira jumlah system engineer
+    total_engineers = User.objects.filter(role='SystemEngineer').count()
+
+    # Jumlah semua task
+    total_tasks = TechRefreshRequest.objects.count()
+
+    # Kira pending dan completed secara case-insensitive
+    pending_tasks = TechRefreshRequest.objects.filter(status__iexact='Pending').count()
+    completed_tasks = TechRefreshRequest.objects.filter(status__iexact='Completed').count()
+
     context = {
-        'total_engineers': User.objects.filter(role='SystemEngineer').count(),
-        'total_tasks': TechRefresh.objects.count(),
-        'pending_tasks': TechRefresh.objects.filter(status='Pending').count(),
-        'completed_tasks': TechRefresh.objects.filter(status='Completed').count(),
+        'total_engineers': total_engineers,
+        'total_tasks': total_tasks,
+        'pending_tasks': pending_tasks,
+        'completed_tasks': completed_tasks,
     }
+
     return render(request, 'teamlead_dashboard.html', context)
+
 
 
 @login_required(login_url='login')
@@ -836,7 +848,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
 from datetime import datetime
 from .models import Request, TechRefreshRequest
-
+'''
 def export_requests_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="filtered_requests.pdf"'
@@ -903,8 +915,94 @@ def export_requests_pdf(request):
     p.save()
     return response
 
+'''
+@require_role('TeamLead')
+def export_requests_pdf(request):
+    engineer_name = request.GET.get('engineer_name', '').strip()
+    request_type = request.GET.get('request_type', '').strip()
+    start_date = request.GET.get('start_date', '').strip()
+    end_date = request.GET.get('end_date', '').strip()
 
+    # Ambil semua request dari 2 model
+    request_list = []
 
+    reqs = Request.objects.all().order_by('-created_at')
+    techs = TechRefreshRequest.objects.all().order_by('-submitted_at')
+
+    # Apply filters sama macam reports()
+    if engineer_name:
+        reqs = reqs.filter(engineer__username__icontains=engineer_name)
+        techs = techs.filter(engineer__username__icontains=engineer_name)
+    if request_type:
+        reqs = reqs.filter(type__icontains=request_type)
+        techs = techs.filter(type__icontains=request_type)
+    if start_date and end_date:
+        reqs = reqs.filter(created_at__range=[start_date, end_date])
+        techs = techs.filter(submitted_at__range=[start_date, end_date])
+    elif start_date:
+        reqs = reqs.filter(created_at__gte=start_date)
+        techs = techs.filter(submitted_at__gte=start_date)
+    elif end_date:
+        reqs = reqs.filter(created_at__lte=end_date)
+        techs = techs.filter(submitted_at__lte=end_date)
+
+    # Gabungkan ke satu senarai
+    for r in reqs:
+        request_list.append({
+            'engineer_name': r.engineer.username if r.engineer else "N/A",
+            'request_type': r.type or "General Request",
+            'date_submitted': r.created_at.date(),
+            'status': r.status,
+        })
+
+    for t in techs:
+        request_list.append({
+            'engineer_name': t.engineer.username if t.engineer else "N/A",
+            'request_type': "Tech Refresh",
+            'date_submitted': t.submitted_at.date(),
+            'status': t.status,
+        })
+
+    # ===== Generate PDF =====
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(200, height - 40, "Requests Report")
+
+    y = height - 80
+    p.setFont("Helvetica", 10)
+    p.drawString(50, y, f"Engineer Filter: {engineer_name or 'All'}")
+    y -= 15
+    p.drawString(50, y, f"Request Type: {request_type or 'All'}")
+    y -= 15
+    p.drawString(50, y, f"Date Range: {start_date or '-'} to {end_date or '-'}")
+    y -= 30
+
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(50, y, "Engineer")
+    p.drawString(180, y, "Request Type")
+    p.drawString(320, y, "Date")
+    p.drawString(420, y, "Status")
+    y -= 15
+    p.line(50, y, 550, y)
+    y -= 10
+
+    p.setFont("Helvetica", 10)
+    for r in request_list:
+        if y < 80:  # new page
+            p.showPage()
+            y = height - 80
+        p.drawString(50, y, r['engineer_name'])
+        p.drawString(180, y, r['request_type'])
+        p.drawString(320, y, str(r['date_submitted']))
+        p.drawString(420, y, r['status'])
+        y -= 15
+
+    p.save()
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename="filtered_report.pdf")
 
 @login_required
 @require_role('TeamLead')
