@@ -79,4 +79,10 @@ urlpatterns = [
     
     path('assign-task/', views.assign_task, name='assign_task'),
     path('task-history/', views.task_history, name='task_history'),
+
+    path('assign-task/', views.assign_task, name='assign_task'),
+    path('task-history/<int:engineer_id>/', views.task_history, name='task_history'),
+    path('engineer-tasks/', views.engineer_tasks, name='engineer_tasks'),
+    
+
 ]
