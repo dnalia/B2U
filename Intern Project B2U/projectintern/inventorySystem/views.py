@@ -350,11 +350,11 @@ def teamlead_dashboard(request):
     total_engineers = User.objects.filter(role='SystemEngineer').count()
 
     # Jumlah semua task
-    total_tasks = TechRefreshRequest.objects.count()
+    total_tasks = Request.objects.count()
 
     # Kira pending dan completed secara case-insensitive
-    pending_tasks = TechRefreshRequest.objects.filter(status__iexact='Pending').count()
-    completed_tasks = TechRefreshRequest.objects.filter(status__iexact='Completed').count()
+    pending_tasks = Request.objects.filter(status__iexact='Pending').count()
+    completed_tasks = Request.objects.filter(status__iexact='Completed').count()
 
     context = {
         'total_engineers': total_engineers,
