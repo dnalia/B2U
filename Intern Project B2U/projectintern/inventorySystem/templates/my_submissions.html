@@ -163,7 +163,7 @@
   <div class="sidebar">
     <h2>Beyond2U</h2>
     <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
-    <a href="{% url 'create_task' %}">➕ Create Task</a>
+    <a href="{% url 'create_task' %}">🧩 Assigned Task</a>
     <a href="{% url 'my_submissions' %}">📄 My Submissions</a>
     <a href="{% url 'notifications' %}">🔔 Notifications</a>
     <a href="{% url 'logout' %}">🚪 Logout</a>
@@ -207,7 +207,6 @@
           <a href="{% url 'task_detail' task.id %}" class="btn btn-view">View</a>
 
           {% if task.status == "Pending" %}
-            <a href="{% url 'edit_task' task.id %}" class="btn btn-edit">Edit</a>
             <a href="{% url 'cancel_task' task.id %}" class="btn btn-cancel"
                onclick="return confirm('Are you sure you want to cancel this task?');">
                Cancel

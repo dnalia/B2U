@@ -117,25 +117,22 @@ Q(engineer__username__icontains=search_query) |
     return render(request, 'manage_requests.html', context)
 
 @login_required
-def submit_task(request, task_id):
+def submit_task(request):
+    task_id = request.GET.get('task_id')
     task = get_object_or_404(AssignedTask, id=task_id, engineer=request.user)
 
     if request.method == 'POST':
-        # Create submission
         Submission.objects.create(
             engineer=request.user,
             task=task,
             status="Pending Verification"
         )
-
-        # Update task status
         task.status = "Done"
         task.save()
 
-        # Create corresponding Request for Team Lead to verify
         Request.objects.create(
             engineer=request.user,
-            type="Tech Refresh",  # or pull from task.replacement_type if you have it
+            type="Tech Refresh",
             location=task.location,
             user=task.username,
             old_barcode=task.barcode,
@@ -144,14 +141,13 @@ def submit_task(request, task_id):
             assigned_approver=User.objects.filter(role='TeamLead').first(),
         )
 
-        # Notify Team Lead
         Notification.objects.create(
             user=User.objects.filter(role='TeamLead').first(),
             message=f"New request submitted by {request.user.username} for {task.username}"
         )
 
         messages.success(request, "Task submitted successfully!")
-        return redirect('my_submission')
+        return redirect('my_submissions')
 
     return render(request, 'my_submissions.html', {'task': task})
 
@@ -717,8 +713,33 @@ def manage_engineers(request):
 
     engineers = User.objects.filter(role='SystemEngineer')
     return render(request, "manage_engineers.html", {"engineers": engineers})
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Request  # pastikan model betul
 
 @login_required
+def approve_request(request, req_id):
+    req = get_object_or_404(Request, id=req_id)
+    req.status = "Approved"
+    req.save()
+    messages.success(request, "Request has been approved successfully.")
+    return redirect('manage_requests')
+
+
+@login_required
+def reject_request(request, req_id):
+    req = get_object_or_404(Request, id=req_id)
+    req.status = "Rejected"
+    req.save()
+    messages.error(request, "Request has been rejected.")
+    return redirect('manage_requests')
+
+
+'''@login_required
 def approve_request(request, req_id):
     submission = Submission.objects.get(id=req_id)
     submission.status = "Approved"
@@ -743,7 +764,7 @@ def reject_request(request, req_id):
         message=f"Your submitted task has been rejected ❌"
     )
 
-    return redirect('manage_requests')
+    return redirect('manage_requests')'''
 
 def reports(request):
     engineer_name = request.GET.get('engineer_name', '')
