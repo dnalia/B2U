@@ -279,22 +279,37 @@ class Notification(models.Model):
 # 8. ASSIGNED TASK MODEL (FINAL, CLEAN)
 # ======================================================
 class AssignedTask(models.Model):
-    REPLACEMENT_TYPES = [
-        ('PC (Asset Refresh)', 'PC (Asset Refresh)'),
-        ('Laptop (Tech Refresh)', 'Laptop (Tech Refresh)'),
-        ('RAM (Parts Upgrade)', 'RAM (Parts Upgrade)'),
-    ]
-
-    engineer = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'SystemEngineer'})
+    engineer = models.ForeignKey(User, on_delete=models.CASCADE)
     barcode = models.CharField(max_length=100)
     serial_number = models.CharField(max_length=100)
     username = models.CharField(max_length=100)
-    phone_number = models.CharField(max_length=20)
-    lan_id = models.CharField(max_length=50)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    lan_id = models.CharField(max_length=50, blank=True, null=True)
     location = models.CharField(max_length=100)
-    os = models.CharField(max_length=50, default="Windows 10")
-    replacement_type = models.CharField(max_length=100, choices=REPLACEMENT_TYPES)
-    assigned_date = models.DateTimeField(default=timezone.now)
+    os = models.CharField(max_length=50)
+    replacement_type = models.CharField(max_length=100)
+    status = models.CharField(max_length=50, default='Pending')
+    remarks = models.TextField(blank=True, null=True)
+    proof = models.FileField(upload_to='proofs/', blank=True, null=True)
+    assigned_date = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.engineer.username} - {self.replacement_type}"
+        return f"{self.username} - {self.engineer.username}"
+
+
+class TaskHistory(models.Model):
+    engineer = models.ForeignKey(User, on_delete=models.CASCADE)
+    task = models.ForeignKey(AssignedTask, on_delete=models.CASCADE)
+    status = models.CharField(max_length=50)
+    remarks = models.TextField(blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.engineer.username} - {self.status}"
+
+class Submission(models.Model):
+    engineer = models.ForeignKey(User, on_delete=models.CASCADE)
+    task = models.ForeignKey(AssignedTask, on_delete=models.CASCADE)
+    status = models.CharField(max_length=50, default="Pending Verification")
+    submitted_date = models.DateTimeField(auto_now_add=True)

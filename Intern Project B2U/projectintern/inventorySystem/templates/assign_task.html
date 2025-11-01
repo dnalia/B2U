@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +12,6 @@
       color: #2d2d2d;
     }
 
-    /* Sidebar */
     .sidebar {
       position: fixed;
       top: 0;
@@ -57,7 +57,6 @@
       transform: translateY(-3px);
     }
 
-    /* Main Content */
     .content {
       margin-left: 260px;
       padding: 40px;
@@ -134,7 +133,6 @@
       background-color: #ffda47;
     }
 
-    /* Popup Modal */
     .modal {
       display: none;
       position: fixed;
@@ -195,12 +193,10 @@
       background: #004aad;
       color: white;
     }
-
   </style>
 </head>
 <body>
 
-  <!-- Sidebar -->
   <div class="sidebar">
     <h2>Beyond2U</h2>
     <a href="{% url 'teamlead_dashboard' %}">🏠 Dashboard</a>
@@ -211,9 +207,16 @@
     <a href="{% url 'logout' %}">🚪 Logout</a>
   </div>
 
-  <!-- Content -->
   <div class="content">
     <h1>Assign Task to Engineers 👷‍♂️</h1>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div style="background:#e6f7ff;padding:10px;border-left:5px solid #004aad;margin-bottom:15px;border-radius:5px;">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
 
     <div class="search-bar">
       <input type="text" id="searchInput" placeholder="Search engineer name...">
@@ -229,12 +232,14 @@
       <tbody>
         {% for engineer in engineers %}
         <tr>
-          <td>{{ engineer.name }}</td>
+          <td>{{ engineer.username }}</td>
           <td>
-            <button class="action-btn" onclick="openModal('{{ engineer.name }}')">Assign Task</button>
+            <button class="action-btn" onclick="openModal('{{ engineer.username }}')">Assign Task</button>
             <a href="{% url 'task_history' engineer.id %}" class="action-btn history-btn">View History</a>
           </td>
         </tr>
+        {% empty %}
+        <tr><td colspan="2">No engineers found.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -295,19 +300,15 @@
       document.getElementById("assignModal").style.display = "block";
       document.getElementById("engineerName").value = engineerName;
     }
-
     function closeModal() {
       document.getElementById("assignModal").style.display = "none";
     }
-
     window.onclick = function(event) {
       const modal = document.getElementById("assignModal");
       if (event.target == modal) {
         modal.style.display = "none";
       }
     }
-
-    // Search filter
     document.getElementById("searchInput").addEventListener("keyup", function() {
       const filter = this.value.toLowerCase();
       const rows = document.querySelectorAll("#engineerTable tbody tr");
@@ -317,6 +318,5 @@
       });
     });
   </script>
-
 </body>
 </html>
