@@ -6,79 +6,141 @@
   <title>Task History - Team Lead</title>
   <style>
     body {
-      background-color: #fff6f8;
-      font-family: "Poppins", sans-serif;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #2d2d2d;
     }
-    .main-container {
-      margin-left: 260px;
-      padding: 30px;
+
+    .content {
+      margin-left: 60px;
+      margin-right: 60px;
+      padding: 40px;
     }
-    .header {
-      font-size: 24px;
-      font-weight: 600;
-      color: #7b113a;
-      margin-bottom: 20px;
+
+    h1 {
+      font-size: 30px;
+      color: #004aad;
+      margin-bottom: 10px;
     }
+
+    h1 span {
+      color: #ffcc00;
+      font-weight: 700;
+    }
+
+    .subtext {
+      color: #555;
+      font-size: 16px;
+      margin-bottom: 25px;
+    }
+
+    /* Search bar */
     .search-container {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+      gap: 10px;
     }
+
     .search-container input {
-      padding: 8px 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #ccdfff;
       width: 250px;
       outline: none;
+      font-size: 14px;
+      transition: 0.3s;
     }
+
+    .search-container input:focus {
+      border-color: #004aad;
+      box-shadow: 0 0 6px rgba(0, 74, 173, 0.3);
+    }
+
+    .search-container button {
+      background-color: #004aad;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .search-container button:hover {
+      background-color: #003080;
+      transform: translateY(-2px);
+    }
+
+    /* Table design */
     table {
       width: 100%;
       border-collapse: collapse;
-      background: #fff;
-      border-radius: 10px;
+      background: white;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 20px rgba(0, 84, 200, 0.1);
     }
+
     th, td {
-      padding: 12px 15px;
+      padding: 14px 16px;
       text-align: center;
+      font-size: 15px;
     }
+
     th {
-      background-color: #7b113a;
+      background-color: #004aad;
       color: white;
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
+
     tr:nth-child(even) {
-      background-color: #ffe8ec;
+      background-color: #f3f7ff;
     }
+
     tr:hover {
-      background-color: #ffd4db;
+      background-color: #e6f0ff;
     }
+
     .status {
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
     }
+
     .status.pending {
       background-color: #fff3cd;
       color: #856404;
     }
+
     .status.completed {
       background-color: #d4edda;
       color: #155724;
     }
+
+    /* Empty message */
+    .no-data {
+      text-align: center;
+      padding: 20px;
+      color: #888;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
-  {% include 'partials/teamlead_sidebar.html' %}
 
-  <div class="main-container">
-    <div class="header">Task History for {{ engineer.username }}</div>
+  <div class="content">
+    <h1>Task History <span>Overview</span> 📋</h1>
+    <p class="subtext">Below is the list of all assigned tasks for your engineers.</p>
 
     <div class="search-container">
       <form method="get">
         <input type="text" name="q" placeholder="Search engineer name..." value="{{ request.GET.q }}">
-        <button type="submit" class="btn">Search</button>
+        <button type="submit">Search</button>
       </form>
     </div>
 
@@ -114,10 +176,13 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="8">No task history found.</td></tr>
+        <tr>
+          <td colspan="8" class="no-data">No task history found.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+
 </body>
 </html>
