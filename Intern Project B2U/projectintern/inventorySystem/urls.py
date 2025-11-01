@@ -25,6 +25,7 @@ urlpatterns = [
     path('dashboard/systemengineer/', views.systemengineer_dashboard, name='systemengineer_dashboard'),
     path('dashboard/systemengineer/create_task/', views.create_task, name='create_task'),
     path('dashboard/systemengineer/my_submissions/', views.my_submissions, name='my_submissions'),
+    path('task/<int:task_id>/download/', views.download_task_pdf, name='download_task_pdf'),
     path('dashboard/systemengineer/my_submissions/<int:req_id>/view/', views.view_request_details, name='task_detail'),
     path('dashboard/systemengineer/my_submissions/<int:task_id>/download/', views.download_task_pdf, name='download_task_pdf'),
     path('dashboard/systemengineer/my_submissions/<int:task_id>/edit/', views.edit_task, name='edit_task'),
