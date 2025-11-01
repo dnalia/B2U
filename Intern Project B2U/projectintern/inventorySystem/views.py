@@ -117,25 +117,22 @@ Q(engineer__username__icontains=search_query) |
     return render(request, 'manage_requests.html', context)
 
 @login_required
-def submit_task(request, task_id):
+def submit_task(request):
+    task_id = request.GET.get('task_id')
     task = get_object_or_404(AssignedTask, id=task_id, engineer=request.user)
 
     if request.method == 'POST':
-        # Create submission
         Submission.objects.create(
             engineer=request.user,
             task=task,
             status="Pending Verification"
         )
-
-        # Update task status
         task.status = "Done"
         task.save()
 
-        # Create corresponding Request for Team Lead to verify
         Request.objects.create(
             engineer=request.user,
-            type="Tech Refresh",  # or pull from task.replacement_type if you have it
+            type="Tech Refresh",
             location=task.location,
             user=task.username,
             old_barcode=task.barcode,
@@ -144,14 +141,13 @@ def submit_task(request, task_id):
             assigned_approver=User.objects.filter(role='TeamLead').first(),
         )
 
-        # Notify Team Lead
         Notification.objects.create(
             user=User.objects.filter(role='TeamLead').first(),
             message=f"New request submitted by {request.user.username} for {task.username}"
         )
 
         messages.success(request, "Task submitted successfully!")
-        return redirect('my_submission')
+        return redirect('my_submissions')
 
     return render(request, 'my_submissions.html', {'task': task})
 
