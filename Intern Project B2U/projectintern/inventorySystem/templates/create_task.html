@@ -1,286 +1,339 @@
-{% load static %}
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>My Assigned Tasks - Beyond2U</title>
-<style>
-body {
-    font-family:'Segoe UI', sans-serif;
-    margin:0;
-    background:linear-gradient(135deg,#f9fbff,#fffbea);
-    color:#333;
-    display:flex;
-    min-height:100vh;
-}
+  <meta charset="UTF-8">
+  <title>Create Task - Beyond2U</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #f9fbff, #fffbea);
+      color: #333;
+      display: flex;
+      min-height: 100vh;
+    }
+
 .sidebar {
-    width:230px;
-    background:linear-gradient(180deg,#004aad,#5c9eff);
-    color:white;
-    padding:35px 20px;
-    display:flex;
-    flex-direction:column;
-    box-shadow:4px 0 18px rgba(0,0,0,0.1);
-    border-top-right-radius:22px;
-    border-bottom-right-radius:22px;
-    z-index: 3;
+  width: 230px;
+  background: linear-gradient(180deg, #004aad, #5c9eff);
+  color: white;
+  padding: 35px 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 18px rgba(0, 0, 0, 0.1);
+  border-top-right-radius: 22px;
+  border-bottom-right-radius: 22px;
 }
+
 .sidebar h2 {
-    font-size:26px;
-    text-align:center;
-    margin-bottom:40px;
-    color:#ffeb70;
-    text-shadow:0 0 6px rgba(255,255,255,0.3);
+  font-size: 26px;
+  text-align: center;
+  margin-bottom: 40px;
+  color: #ffeb70;
+  text-shadow: 0 0 6px rgba(255,255,255,0.3);
 }
+
 .sidebar a {
-    display:block;
-    color:#fff;
-    text-decoration:none;
-    padding:12px 15px;
-    margin-bottom:12px;
-    border-radius:10px;
-    transition:all 0.3s ease;
-    font-weight:500;
-    text-align:center;
-    background:rgba(255,255,255,0.15);
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 15px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.15);
 }
+
 .sidebar a:hover {
-    background:#ffda47;
-    color:#004aad;
-    font-weight:600;
-    transform:translateY(-3px);
+  background: #ffda47;
+  color: #004aad;
+  font-weight: 600;
+  transform: translateY(-3px);
 }
+
 .content {
-    flex:1;
-    padding:50px 60px;
-    position: relative;
-    z-index: 1;
+  flex: 1;
+  padding: 50px 60px;
+  animation: fadeIn 0.7s ease-in-out;
 }
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
 h1 {
-    color:#004aad;
-    font-size:30px;
-    margin-bottom:25px;
+  color: #004aad;
+  font-size: 30px;
+  margin-bottom: 25px;
 }
-.search-bar {
-    display:flex;
-    justify-content:flex-end;
-    margin-bottom:20px;
-}
-.search-bar input {
-    width:300px;
-    padding:10px 15px;
-    border:2px solid #004aad;
-    border-radius:8px;
-    font-size:15px;
-}
-.task-table {
-    width:100%;
-    border-collapse:collapse;
-    background:white;
-    border-radius:16px;
-    overflow:hidden;
-    box-shadow:0 6px 20px rgba(0,84,200,0.1);
-    position: relative;
-    z-index: 1;
-}
-.task-table th, .task-table td {
-    padding:15px;
-    text-align:left;
-    border-bottom:1px solid #e0ecff;
-}
-.task-table th {
-    background-color:#004aad;
-    color:white;
-    font-size:16px;
-}
-.task-table tr:hover { background-color:#f1f5ff; }
-.action-btn {
-    background-color:#004aad;
-    color:white;
-    border:none;
-    padding:8px 16px;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:600;
-    transition:0.3s;
-    position: relative;
-    z-index: 2;
-}
-.action-btn:hover { background-color:#003080; transform:translateY(-2px); }
 
-.modal {
-    display:none;
-    position:fixed;
-    z-index:10;
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
-    background-color:rgba(0,0,0,0.4);
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 25px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
 }
-.modal-content {
-    background-color:#fff;
-    margin:5% auto;
-    padding:25px;
-    border-radius:16px;
-    width:650px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.2);
-    border-top:5px solid #004aad;
+
+th, td {
+  padding: 14px 18px;
+  text-align: left;
 }
-.modal-content h2 { color:#004aad; text-align:center; margin-bottom:20px; }
-.modal-content input, .modal-content textarea {
-    width:100%;
-    margin-bottom:10px;
-    padding:8px;
-    border-radius:8px;
-    border:1px solid #ccc;
-    background-color:#f5f5f5;
+
+th {
+  background: #004aad;
+  color: white;
+  text-transform: uppercase;
+  font-size: 14px;
 }
-.modal-content textarea { min-height:60px; resize:none; }
-.modal-buttons { text-align:right; margin-top:10px; }
-.close-btn {
-    padding:8px 16px;
-    border:none;
-    border-radius:8px;
-    background:#004aad;
-    color:white;
-    cursor:pointer;
+
+tr:nth-child(even) {
+  background: #f7f9ff;
 }
-.close-btn:hover { background:#003080; }
-</style>
+
+.btn {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-update {
+  background: linear-gradient(90deg, #004aad, #007bff);
+  color: white;
+}
+
+.btn-update:hover {
+  background: #ffda47;
+  color: #004aad;
+}
+
+.update-form {
+  background: #fff;
+  margin-top: 40px;
+  padding: 25px 35px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  max-width: 850px;
+}
+
+.update-form h3 {
+  color: #004aad;
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  color: #004aad;
+  margin-bottom: 6px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fafafa;
+  margin-bottom: 15px;
+}
+
+input[readonly] {
+  background: #f0f0f0;
+  cursor: not-allowed;
+}
+
+button {
+  padding: 12px 24px;
+  background: linear-gradient(90deg, #004aad, #007bff);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+button:hover {
+  background: linear-gradient(90deg, #ffdb4d, #ffd740);
+  color: #003080;
+  transform: translateY(-2px);
+}
+
+  </style>
 </head>
-<body>
 
-<div class="sidebar">
+<body>
+  <div class="sidebar">
     <h2>Beyond2U</h2>
     <a href="{% url 'systemengineer_dashboard' %}">🏠 Dashboard</a>
-    <a href="{% url 'create_task' %}">➕ Create Task</a>
+    <a href="{% url 'create_task' %}">🧩 Create Task</a>
     <a href="{% url 'my_submissions' %}">📄 My Submissions</a>
     <a href="{% url 'notifications' %}">🔔 Notifications</a>
     <a href="{% url 'logout' %}">🚪 Logout</a>
-</div>
-
-<div class="content">
-<h1>Your Assigned Tasks 👷‍♂️</h1>
-
-<div class="search-bar">
-  <input type="text" id="taskSearch" placeholder="Search by user or replacement type...">
-</div>
-
-<table class="task-table" id="taskTable">
-  <thead>
-    <tr>
-      <th>User</th>
-      <th>Replacement Type</th>
-      <th>Location</th>
-      <th>Assigned Date</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for task in assigned_tasks %}
-    <tr>
-      <td>{{ task.username }}</td>
-      <td>{{ task.replacement_type }}</td>
-      <td>{{ task.location }}</td>
-      <td>{{ task.assigned_date|date:"Y-m-d H:i" }}</td>
-      <td>
-        <button class="action-btn" onclick="openUpdateModal('{{ task.barcode }}')">Update</button>
-      </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="5">No tasks assigned to you yet.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
-
-<!-- Modal -->
-<div id="updateModal" class="modal">
-  <div class="modal-content">
-    <h2>Task Details</h2>
-    <form>
-      {% csrf_token %}
-      <label>Engineer Name:</label>
-      <input type="text" id="modalEngineer" readonly>
-      <label>User Name:</label>
-      <input type="text" id="modalUser" readonly>
-      <label>Location:</label>
-      <input type="text" id="modalLocation" readonly>
-      <label>Old Hostname:</label>
-      <input type="text" id="modalOldHostname" readonly>
-      <label>New Hostname:</label>
-      <input type="text" id="modalNewHostname" readonly>
-      <label>Old Serial Number:</label>
-      <input type="text" id="modalOldSerial" readonly>
-      <label>New Serial Number:</label>
-      <input type="text" id="modalNewSerial" readonly>
-      <label>Status:</label>
-      <input type="text" id="modalStatus" readonly>
-      <label>Rescheduled Date:</label>
-      <input type="text" id="modalReschedule" readonly>
-      <label>Format Status:</label>
-      <input type="text" id="modalFormatStatus" readonly>
-      <label>Reason (Not Formatted):</label>
-      <input type="text" id="modalReasonFormat" readonly>
-      <label>Upload Status:</label>
-      <input type="text" id="modalUploadStatus" readonly>
-      <label>Reason (Not Uploaded):</label>
-      <input type="text" id="modalReasonUpload" readonly>
-      <label>Remarks:</label>
-      <textarea id="modalRemarks" readonly></textarea>
-      <div class="modal-buttons">
-        <button type="button" class="close-btn" onclick="closeUpdateModal()">Close</button>
-      </div>
-    </form>
   </div>
-</div>
 
-<script>
-const tasks = JSON.parse('{{ tasks_json|escapejs }}');
+  <div class="content">
+    {% if is_teamlead %}
+      <h1>Assign Task to Engineers</h1>
+      <form method="POST">
+        {% csrf_token %}
+        <label>Select Engineer:</label>
+        <select name="engineer_id" required>
+          {% for e in engineers %}
+            <option value="{{ e.id }}">{{ e.username }}</option>
+          {% endfor %}
+        </select>
 
-function openUpdateModal(taskBarcode) {
-    const taskObj = tasks.find(t => t.fields.barcode == taskBarcode).fields;
+    <label>Task Type:</label>
+    <input type="text" name="replacement_type" placeholder="e.g., Tech Refresh">
 
-    document.getElementById('modalEngineer').value = taskObj.engineer;
-    document.getElementById('modalUser').value = taskObj.username;
-    document.getElementById('modalLocation').value = taskObj.location;
-    document.getElementById('modalOldHostname').value = taskObj.old_hostname || '';
-    document.getElementById('modalNewHostname').value = taskObj.new_hostname || '';
-    document.getElementById('modalOldSerial').value = taskObj.old_serial || '';
-    document.getElementById('modalNewSerial').value = taskObj.new_serial || '';
-    document.getElementById('modalStatus').value = taskObj.status;
-    document.getElementById('modalReschedule').value = taskObj.rescheduled_date || '';
-    document.getElementById('modalFormatStatus').value = taskObj.format_status || '';
-    document.getElementById('modalReasonFormat').value = taskObj.reason_not_formatted || '';
-    document.getElementById('modalUploadStatus').value = taskObj.upload_status || '';
-    document.getElementById('modalReasonUpload').value = taskObj.reason_not_uploaded || '';
-    document.getElementById('modalRemarks').value = taskObj.remarks || '';
+    <label>Location:</label>
+    <input type="text" name="location" placeholder="Enter task location">
 
-    document.getElementById('updateModal').style.display = 'block';
-}
+    <label>User Name:</label>
+    <input type="text" name="user_name" placeholder="Enter user name">
 
-function closeUpdateModal() {
-    document.getElementById('updateModal').style.display = 'none';
-}
+    <label>Barcode:</label>
+    <input type="text" name="barcode" placeholder="Enter barcode">
 
-// Search filter
-document.getElementById("taskSearch").addEventListener("keyup", function() {
-    const filter = this.value.toLowerCase();
-    const rows = document.querySelectorAll("#taskTable tbody tr");
-    rows.forEach(row => {
-        const user = row.cells[0].textContent.toLowerCase();
-        const type = row.cells[1].textContent.toLowerCase();
-        row.style.display = (user.includes(filter) || type.includes(filter)) ? "" : "none";
-    });
-});
+    <label>Serial Number:</label>
+    <input type="text" name="serial_number" placeholder="Enter serial number">
 
-// Close modal on click outside
-window.onclick = function(event) {
-    const modal = document.getElementById("updateModal");
-    if(event.target == modal) modal.style.display = "none";
-}
-</script>
+    <button type="submit">Assign Task</button>
+  </form>
 
+{% else %}
+  <h1>My Assigned Tasks</h1>
+  {% if assigned_tasks %}
+    <table>
+      <tr>
+        <th>Engineer</th>
+        <th>Type</th>
+        <th>Location</th>
+        <th>User</th>
+        <th>Barcode</th>
+        <th>Serial No.</th>
+        <th>Date Assigned</th>
+        <th>Action</th>
+      </tr>
+      {% for task in assigned_tasks %}
+      <tr>
+        <td>{{ task.engineer.username }}</td>
+        <td>{{ task.replacement_type }}</td>
+        <td>{{ task.location }}</td>
+        <td>{{ task.username }}</td>
+        <td>{{ task.barcode }}</td>
+        <td>{{ task.serial_number }}</td>
+        <td>{{ task.assigned_date|date:"d M Y" }}</td>
+        <td><a href="?task_id={{ task.id }}" class="btn btn-update">Update</a></td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>No tasks assigned yet.</p>
+  {% endif %}
+
+  {% if selected_task %}
+    <div class="update-form">
+      <h3>Submit Task: {{ selected_task.replacement_type }}</h3>
+
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Engineer Name</label>
+        <input type="text" name="engineer_name" value="{{ user.username }}" readonly>
+
+        <label>Barcode</label>
+        <input type="text" name="barcode" value="{{ selected_task.barcode }}" readonly>
+
+        <label>Serial Number</label>
+        <input type="text" name="serial_number" value="{{ selected_task.serial_number }}" readonly>
+
+        <label>Location</label>
+        <input type="text" name="location" value="{{ selected_task.location }}" readonly>
+
+        <label>Username</label>
+        {% if selected_task.username %}
+          <input type="text" name="user_name" value="{{ selected_task.username }}" readonly>
+        {% else %}
+          <input type="text" name="user_name" placeholder="Enter user name" required>
+        {% endif %}
+
+        <label>Old Hostname</label>
+        <input type="text" name="old_hostname" placeholder="Enter old hostname">
+
+        <label>New Hostname</label>
+        <input type="text" name="new_hostname" placeholder="Enter new hostname">
+
+        <label>Old Serial Number</label>
+        <input type="text" name="old_serial" placeholder="Enter old serial number">
+
+        <label>New Serial Number</label>
+        <input type="text" name="new_serial" placeholder="Enter new serial number">
+
+        <label>Status</label>
+        <select name="status" required>
+            <option value="">-- Select Status --</option>
+            <option value="Done">Done</option>
+            <option value="Pending">Pending</option>
+            <option value="Incomplete">Incomplete</option>
+            <option value="Rescheduled">Rescheduled</option>
+          </select>
+
+        <label>Date (If rescheduled)</label>
+        <input type="date" name="rescheduled_date">
+
+        <label>Format Status</label>
+        <select name="format_status" required>
+            <option value="">-- Select Status --</option>
+            <option value="Done">Done</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Not Yet Started">Not Yet Started</option>
+          </select>
+
+        <label>Reason (If haven't formatted)</label>
+        <input type="text" name="reason_not_formatted" placeholder="Enter reason if not formatted">
+
+        <label>Upload Status</label>
+        <select name="upload_status" required>
+            <option value="">-- Select Status --</option>
+            <option value="Done">Done</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+          </select>
+
+        <label>Reason (If haven't uploaded)</label>
+        <input type="text" name="reason_not_uploaded" placeholder="Enter reason if not uploaded">
+
+        <label>Remarks</label>
+        <textarea name="remarks" rows="3" placeholder="Enter remarks"></textarea>
+
+        <label>Upload Proof (image/pdf)</label>
+        <input type="file" name="proof" accept="image/*,application/pdf">
+
+        <button type="submit">Submit Task</button>
+      </form>
+    </div>
+  {% endif %}
+{% endif %}
+
+  </div>
 </body>
 </html>

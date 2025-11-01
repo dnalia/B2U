@@ -13,7 +13,7 @@ from reportlab.lib.pagesizes import A4
 
 from .models import (
     User, TechRefresh, TechRefreshRequest, Inventory, Request,
-    Notification, AssignedTask, Engineer
+    Notification, AssignedTask, Engineer, Submission
 )
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -21,9 +21,134 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib import messages
 from .models import AssignedTask, TaskHistory
-
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
+from .models import Submission, Request, Notification
+
+@login_required(login_url='login')
+def manage_requests(request):
+    # Ambil query parameter dari form search dan filter status
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'all')
+
+    # Ambil data daripada kedua-dua model
+    requests_qs = Request.objects.all()
+    tech_qs = TechRefresh.objects.all()
+
+    # Filter berdasarkan carian (nama engineer / lokasi / user)
+    if search_query:
+        requests_qs = requests_qs.filter(
+Q(engineer__username__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(user__icontains=search_query)
+        )
+        tech_qs = tech_qs.filter(
+            Q(engineer_name__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(user_name__icontains=search_query)
+        )
+
+    # Filter berdasarkan status
+    if status_filter and status_filter != 'all':
+        requests_qs = requests_qs.filter(status=status_filter)
+        tech_qs = tech_qs.filter(status=status_filter)
+
+    # Gabungkan data jadi satu senarai (normalize supaya template boleh baca seragam)
+    combined_requests = []
+
+    for r in requests_qs:
+        combined_requests.append({
+            'id': r.id,
+            'type': r.type,
+            'engineer': r.engineer.username if r.engineer else 'N/A',
+            'user': r.user or 'N/A',
+            'location': r.location or 'N/A',
+            'status': r.status,
+            'old_hostname': r.old_hostname or '-',
+            'new_hostname': r.new_hostname or '-',
+            'old_serial': r.old_serial or '-',
+            'new_serial': r.new_serial or '-',
+            'rescheduled_date': r.rescheduled_date or '-',
+            'format_status': r.format_status or '-',
+            'reason_not_formatted': r.reason_not_formatted or '-',
+            'upload_status': r.upload_status or '-',
+            'reason_not_uploaded': r.reason_not_uploaded or '-',
+            'remarks': r.remarks or '-',
+            'proof': r.proof.url if r.proof else None,
+            'created_at': r.created_at,
+        })
+
+    for t in tech_qs:
+        combined_requests.append({
+            'id': t.id,
+            'type': 'Tech Refresh',
+            'engineer': t.engineer_name or 'N/A',
+            'user': t.user_name or 'N/A',
+            'location': t.location or 'N/A',
+            'status': t.status,
+            'old_hostname': t.old_hostname or '-',
+            'new_hostname': t.new_hostname or '-',
+            'old_serial': t.old_serial_number or '-',
+            'new_serial': t.new_serial_number or '-',
+            'rescheduled_date': t.date_if_rescheduled or '-',
+            'format_status': t.format_status or '-',
+            'reason_not_formatted': t.reason_not_formatted or '-',
+            'upload_status': t.upload_status or '-',
+            'reason_not_uploaded': t.reason_not_uploaded or '-',
+            'remarks': t.remarks or '-',
+            'proof': None,  # Tiada proof field untuk model ni
+            'created_at': t.created_at,
+        })
+
+    # Susun ikut tarikh paling baru
+    combined_requests.sort(key=lambda x: x['created_at'], reverse=True)
+
+    context = {
+        'requests': combined_requests,
+        'search_query': search_query,
+        'status_filter': status_filter,
+    }
+
+    return render(request, 'manage_requests.html', context)
+
+@login_required
+def submit_task(request, task_id):
+    task = get_object_or_404(AssignedTask, id=task_id, engineer=request.user)
+
+    if request.method == 'POST':
+        # Create submission
+        Submission.objects.create(
+            engineer=request.user,
+            task=task,
+            status="Pending Verification"
+        )
+
+        # Update task status
+        task.status = "Done"
+        task.save()
+
+        # Create corresponding Request for Team Lead to verify
+        Request.objects.create(
+            engineer=request.user,
+            type="Tech Refresh",  # or pull from task.replacement_type if you have it
+            location=task.location,
+            user=task.username,
+            old_barcode=task.barcode,
+            new_barcode=task.serial_number,
+            status="Pending",
+            assigned_approver=User.objects.filter(role='TeamLead').first(),
+        )
+
+        # Notify Team Lead
+        Notification.objects.create(
+            user=User.objects.filter(role='TeamLead').first(),
+            message=f"New request submitted by {request.user.username} for {task.username}"
+        )
+
+        messages.success(request, "Task submitted successfully!")
+        return redirect('my_submission')
+
+    return render(request, 'my_submissions.html', {'task': task})
 
 @login_required
 def systemengineer_tasks(request):
@@ -268,16 +393,80 @@ def systemengineer_dashboard(request):
 @login_required
 def create_task(request):
     user = request.user
+
     if user.role == 'TeamLead':
-        # Show all engineers for assignment
         engineers = User.objects.filter(role='SystemEngineer')
+        if request.method == "POST":
+            engineer_id = request.POST.get('engineer_id')
+            engineer = User.objects.get(id=engineer_id)
+            replacement_type = request.POST.get('replacement_type')
+            location = request.POST.get('location')
+            user_name = request.POST.get('user_name')
+            barcode = request.POST.get('barcode')
+            serial_number = request.POST.get('serial_number')
+
+            AssignedTask.objects.create(
+                engineer=engineer,
+                replacement_type=replacement_type,
+                location=location,
+                username=user_name,
+                barcode=barcode,
+                serial_number=serial_number
+            )
+
+            Notification.objects.create(
+                user=engineer,
+                message=f"You have been assigned a new task: {replacement_type} at {location}."
+            )
+            return redirect('create_task')
+
         return render(request, 'create_task.html', {'engineers': engineers, 'is_teamlead': True})
-    
+
     elif user.role == 'SystemEngineer':
-        # Show tasks assigned to this engineer
+        selected_task = None
+        task_id = request.GET.get('task_id')
+
+        if task_id:
+            selected_task = AssignedTask.objects.get(id=task_id, engineer=user)
+
+        if request.method == "POST" and selected_task:
+            status = request.POST.get('status')
+
+            # ✅ Update status + save file uploads
+            selected_task.status = status
+            selected_task.remarks = request.POST.get('remarks')
+            selected_task.proof = request.FILES.get('proof')
+            selected_task.save()
+
+            # ✅ If task done → move to submission + notify TL
+            if status.lower() == "done":
+                # Move ke MySubmissions (boleh guna model Submission)
+                Submission.objects.create(
+                    engineer=user,
+                    task=selected_task,
+                    status="Pending Verification"
+                )
+
+                # Notify team lead
+                teamlead = User.objects.filter(role='TeamLead').first()
+                if teamlead:
+                    Notification.objects.create(
+                        user=teamlead,
+                        message=f"{user.username} has submitted a completed task for verification."
+                    )
+
+                # Delete/hide from AssignedTask list
+                selected_task.delete()
+
+            return redirect('my_submissions')
+
         assigned_tasks = AssignedTask.objects.filter(engineer=user)
-        return render(request, 'create_task.html', {'assigned_tasks': assigned_tasks, 'is_teamlead': False})
-    
+        return render(request, 'create_task.html', {
+            'assigned_tasks': assigned_tasks,
+            'selected_task': selected_task,
+            'is_teamlead': False
+        })
+
     else:
         return redirect('dashboard')
 
@@ -285,7 +474,6 @@ def create_task(request):
 def my_submissions(request):
     submissions = Request.objects.filter(engineer=request.user).order_by('-created_at')
     return render(request, 'my_submissions.html', {'submissions': submissions})
-
 
 @login_required
 def cancel_task(request, task_id):
@@ -503,145 +691,53 @@ def create_request(request):
         return redirect('systemengineer_dashboard')
     return render(request, 'create_request.html')
 
-@login_required(login_url='login')
-def manage_requests(request):
-    # Ambil query parameter dari form search dan filter status
-    search_query = request.GET.get('search', '')
-    status_filter = request.GET.get('status', 'all')
-
-    # Ambil data daripada kedua-dua model
-    requests_qs = Request.objects.all()
-    tech_qs = TechRefresh.objects.all()
-
-    # Filter berdasarkan carian (nama engineer / lokasi / user)
-    if search_query:
-        requests_qs = requests_qs.filter(
-            Q(engineer__username__icontains=search_query) |
-            Q(location__icontains=search_query) |
-            Q(user__icontains=search_query)
-        )
-        tech_qs = tech_qs.filter(
-            Q(engineer_name__icontains=search_query) |
-            Q(location__icontains=search_query) |
-            Q(user_name__icontains=search_query)
-        )
-
-    # Filter berdasarkan status
-    if status_filter and status_filter != 'all':
-        requests_qs = requests_qs.filter(status=status_filter)
-        tech_qs = tech_qs.filter(status=status_filter)
-
-    # Gabungkan data jadi satu senarai (normalize supaya template boleh baca seragam)
-    combined_requests = []
-
-    for r in requests_qs:
-        combined_requests.append({
-            'id': r.id,
-            'type': r.type,
-            'engineer': r.engineer.username if r.engineer else 'N/A',
-            'user': r.user or 'N/A',
-            'location': r.location or 'N/A',
-            'status': r.status,
-            'old_hostname': r.old_hostname or '-',
-            'new_hostname': r.new_hostname or '-',
-            'old_serial': r.old_serial or '-',
-            'new_serial': r.new_serial or '-',
-            'rescheduled_date': r.rescheduled_date or '-',
-            'format_status': r.format_status or '-',
-            'reason_not_formatted': r.reason_not_formatted or '-',
-            'upload_status': r.upload_status or '-',
-            'reason_not_uploaded': r.reason_not_uploaded or '-',
-            'remarks': r.remarks or '-',
-            'proof': r.proof.url if r.proof else None,
-            'created_at': r.created_at,
-        })
-
-    for t in tech_qs:
-        combined_requests.append({
-            'id': t.id,
-            'type': 'Tech Refresh',
-            'engineer': t.engineer_name or 'N/A',
-            'user': t.user_name or 'N/A',
-            'location': t.location or 'N/A',
-            'status': t.status,
-            'old_hostname': t.old_hostname or '-',
-            'new_hostname': t.new_hostname or '-',
-            'old_serial': t.old_serial_number or '-',
-            'new_serial': t.new_serial_number or '-',
-            'rescheduled_date': t.date_if_rescheduled or '-',
-            'format_status': t.format_status or '-',
-            'reason_not_formatted': t.reason_not_formatted or '-',
-            'upload_status': t.upload_status or '-',
-            'reason_not_uploaded': t.reason_not_uploaded or '-',
-            'remarks': t.remarks or '-',
-            'proof': None,  # Tiada proof field untuk model ni
-            'created_at': t.created_at,
-        })
-
-    # Susun ikut tarikh paling baru
-    combined_requests.sort(key=lambda x: x['created_at'], reverse=True)
-
-    context = {
-        'requests': combined_requests,
-        'search_query': search_query,
-        'status_filter': status_filter,
-    }
-
-    return render(request, 'manage_requests.html', context)
-
-
 @require_role('TeamLead')
+def manage_engineers(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        role = request.POST.get("role", "SystemEngineer")
+        # Ensure role is valid
+        if role not in ['SystemEngineer', 'TeamLead']:
+            role = 'SystemEngineer'
+
+        # Use create_user to properly hash password
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.role = role
+        user.save()
+
+        messages.success(request, f"{username} created.")
+        return redirect('manage_engineers')
+
+    engineers = User.objects.filter(role='SystemEngineer')
+    return render(request, "manage_engineers.html", {"engineers": engineers})
+
+@login_required
 def approve_request(request, req_id):
-    req = Request.objects.filter(id=req_id).first()
-    if req:
-        req.status = 'Approved'
-        req.save()
-        Notification.objects.create(
-            user=req.engineer,
-            message=f"Your submission for {req.user} has been approved by the Team Lead."
-        )
-        messages.success(request, f"Request for {req.user} approved and notification sent.")
-        return redirect('manage_requests')
+    submission = Submission.objects.get(id=req_id)
+    submission.status = "Approved"
+    submission.save()
 
-    req = TechRefreshRequest.objects.filter(id=req_id).first()
-    if req:
-        req.status = 'Approved'
-        req.save()
-        Notification.objects.create(
-            user=req.engineer,
-            message=f"Your Tech Refresh submission for {req.user} has been approved by the Team Lead."
-        )
-        messages.success(request, f"Tech Refresh request for {req.user} approved and notification sent.")
-        return redirect('manage_requests')
+    Notification.objects.create(
+        user=submission.engineer,
+        message=f"Your submitted task has been approved ✅"
+    )
 
-    messages.error(request, "Request not found.")
     return redirect('manage_requests')
 
-@require_role('TeamLead')
+
+@login_required
 def reject_request(request, req_id):
-    req = Request.objects.filter(id=req_id).first()
-    if req:
-        req.status = 'Rejected'
-        req.save()
-        Notification.objects.create(
-            user=req.engineer,
-            message=f"Your submission for {req.user} has been rejected by the Team Lead."
-        )
-        messages.success(request, f"Request for {req.user} rejected and notification sent.")
-        return redirect('manage_requests')
+    submission = Submission.objects.get(id=req_id)
+    submission.status = "Rejected"
+    submission.save()
 
-    req = TechRefreshRequest.objects.filter(id=req_id).first()
-    if req:
-        req.status = 'Rejected'
-        req.save()
-        Notification.objects.create(
-            user=req.engineer,
-            message=f"Your Tech Refresh submission for {req.user} has been rejected by the Team Lead."
-        )
-        messages.success(request, f"Tech Refresh request for {req.user} rejected and notification sent.")
-        return redirect('manage_requests')
+    Notification.objects.create(
+        user=submission.engineer,
+        message=f"Your submitted task has been rejected ❌"
+    )
 
-    messages.error(request, "Request not found.")
     return redirect('manage_requests')
 
 def reports(request):
@@ -940,211 +1036,6 @@ def report_details(request, request_id):
     report = get_object_or_404(Request, id=request_id)
     return render(request, 'report_details.html', {'report': report})
 
-
-
-'''# ==============================
-# 📈 REPORTS & EXPORTS (TeamLead only)
-# ==============================
-
-@login_required(login_url='login')
-def approve_request(request, request_id):
-    req = get_object_or_404(Request, id=request_id)
-    req.status = 'Approved'
-    req.save()
-    messages.success(request, f"Request {req.id} approved successfully.")
-    return redirect('manage_requests')
-
-@login_required(login_url='login')
-def reject_request(request, request_id):
-    req = get_object_or_404(Request, id=request_id)
-    req.status = 'Rejected'
-    req.save()
-    messages.info(request, f"Request {req.id} has been rejected.")
-    return redirect('manage_requests')
-
-
-
-@login_required(login_url='login')
-def reports(request):
-    # Show only approved requests
-    approved_requests = Request.objects.filter(status='Approved').order_by('-created_at')
-    return render(request, 'reports.html', {'requests': approved_requests})
-
-from django.shortcuts import render
-from .models import Request  # make sure this matches your model name
-
-@require_role('TeamLead')
-def reports(request):
-    # Filter only approved requests, or adjust if needed
-    requests_list = Request.objects.all().order_by('-date_submitted')
-    # If you only want approved:
-    # requests_list = Request.objects.filter(status='Approved').order_by('-date_submitted')
-
-    context = {
-        'requests': requests_list
-    }
-    return render(request, 'reports.html', context)
-
-@require_role('TeamLead')
-def reports(request):
-    # Show all requests (or only approved if you prefer)
-    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
-    context = {'requests': requests_list}
-    return render(request, 'reports.html', context)
-
-
-@require_role('TeamLead')
-def export_requests_excel(request):
-    requests_list = TechRefreshRequest.objects.all().values(
-        'engineer__username', 'location', 'user', 'status', 'submitted_at'
-    )
-    df = pd.DataFrame(list(requests_list))
-    df.rename(columns={
-        'engineer__username': 'Engineer',
-        'location': 'Location',
-        'user': 'User',
-        'status': 'Status',
-        'submitted_at': 'Submitted At'
-    }, inplace=True)
-
-    buffer = BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Requests')
-
-    buffer.seek(0)
-    response = HttpResponse(
-        buffer,
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    response['Content-Disposition'] = 'attachment; filename="requests_report.xlsx"'
-    return response
-
-
-@require_role('TeamLead')
-def export_requests_pdf(request):
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="requests_report.pdf"'
-
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(200, height - 50, "Requests Report")
-
-    p.setFont("Helvetica", 11)
-    y = height - 100
-    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
-
-    for req in requests_list:
-        text = f"Engineer: {req.engineer.username}, Location: {req.location}, Status: {req.status}, Date: {req.submitted_at.strftime('%Y-%m-%d')}"
-        p.drawString(50, y, text)
-        y -= 20
-        if y < 50:
-            p.showPage()
-            y = height - 50
-            p.setFont("Helvetica", 11)
-
-    p.save()
-    pdf = buffer.getvalue()
-    buffer.close()
-    response.write(pdf)
-    return response
-
-
-
-
-
-
-@require_role('TeamLead')
-def export_requests_excel(request):
-    requests_list = TechRefreshRequest.objects.all().values(
-        'engineer__username', 'location', 'user', 'status', 'submitted_at'
-    )
-    df = pd.DataFrame(list(requests_list))
-    df.rename(columns={
-        'engineer__username': 'Engineer',
-        'location': 'Location',
-        'user': 'User',
-        'status': 'Status',
-        'submitted_at': 'Submitted At'
-    }, inplace=True)
-
-    buffer = BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Requests')
-
-    buffer.seek(0)
-    response = HttpResponse(
-        buffer,
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    response['Content-Disposition'] = 'attachment; filename="requests_report.xlsx"'
-    return response
-
-
-@require_role('TeamLead')
-def export_requests_pdf(request):
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="requests_report.pdf"'
-
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(200, height - 50, "Requests Report")
-
-    p.setFont("Helvetica", 11)
-    y = height - 100
-    requests_list = TechRefreshRequest.objects.all().order_by('-submitted_at')
-
-    for req in requests_list:
-        text = f"Engineer: {req.engineer.username}, Location: {req.location}, Status: {req.status}, Date: {req.submitted_at.strftime('%Y-%m-%d')}"
-        p.drawString(50, y, text)
-        y -= 20
-        if y < 50:
-            p.showPage()
-            y = height - 50
-            p.setFont("Helvetica", 11)
-
-    p.save()
-    pdf = buffer.getvalue()
-    buffer.close()
-    response.write(pdf)
-    return response'''
-
-
-# MAINTENANCE LOGS
-@login_required
-def maintenance_logs(request):
-    logs = [
-        {'item': 'Monitor', 'issue': 'Display flickering', 'date': '2025-10-10'},
-        {'item': 'Keyboard', 'issue': 'Key stuck', 'date': '2025-10-12'},
-    ]
-    return render(request, 'maintenance_logs.html', {'logs': logs})
-
-
-# ASSIGNED ITEMS
-@login_required(login_url='login')
-def assigned_items(request):
-    items = [
-        {'name': 'Laptop Dell', 'status': 'In Use'},
-        {'name': 'Mouse HP', 'status': 'Returned'},
-    ]
-    return render(request, 'assigned_items.html', {'items': items})
-
-
-# send feedback (SystemEngineer)
-@login_required(login_url='login')
-def send_feedback(request):
-    if request.method == 'POST':
-        message = request.POST.get('message')
-        messages.success(request, "Feedback submitted successfully!")
-        return redirect('systemengineer_dashboard')
-    return render(request, 'send_feedback.html')
-
-
 # NOTIFICATIONS
 @login_required
 def notifications_view(request):
@@ -1196,4 +1087,3 @@ def view_request_details(request, req_id):
     }
 
     return render(request, 'view_request_details.html', context)
-

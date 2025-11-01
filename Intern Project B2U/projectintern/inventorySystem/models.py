@@ -307,3 +307,9 @@ class TaskHistory(models.Model):
 
     def __str__(self):
         return f"{self.engineer.username} - {self.status}"
+
+class Submission(models.Model):
+    engineer = models.ForeignKey(User, on_delete=models.CASCADE)
+    task = models.ForeignKey(AssignedTask, on_delete=models.CASCADE)
+    status = models.CharField(max_length=50, default="Pending Verification")
+    submitted_date = models.DateTimeField(auto_now_add=True)
