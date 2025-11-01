@@ -146,10 +146,12 @@
 
     .modal-content {
       background-color: #fff;
-      margin: 10% auto;
+      margin: 5% auto;
       padding: 25px;
       border-radius: 16px;
       width: 450px;
+      max-height: 80vh; /* penting */
+      overflow-y: auto; /* ni bagi boleh scroll */
       box-shadow: 0 8px 20px rgba(0,0,0,0.2);
       border-top: 5px solid #004aad;
     }
@@ -175,24 +177,41 @@
     }
 
     .modal-buttons {
-      margin-top: 20px;
+      margin-top: 25px;
       text-align: right;
     }
-
+    
+    .modal-buttons button {
+      border: none;
+      padding: 10px 20px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;\
+    }
+    
     .close-btn {
-      background: #ccc;
+      background: #e0e0e0;
       color: #333;
-      margin-right: 10px;
+      margin-right: 10px;    
     }
 
-    .close-btn:hover {
-      background: #999;
-    }
+.close-btn:hover {
+  background: #c9c9c9;
+  transform: translateY(-2px);
+}
 
-    .submit-btn {
-      background: #004aad;
-      color: white;
-    }
+.submit-btn {
+  background: #004aad;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 74, 173, 0.2);
+}
+
+.submit-btn:hover {
+  background: #003080;
+  transform: translateY(-2px);
+}
+
   </style>
 </head>
 <body>
