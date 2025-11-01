@@ -24,6 +24,11 @@ from .models import AssignedTask, TaskHistory
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from .models import Submission, Request, Notification
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 @login_required(login_url='login')
 def manage_requests(request):
@@ -1087,3 +1092,51 @@ def view_request_details(request, req_id):
     }
 
     return render(request, 'view_request_details.html', context)
+
+@login_required
+def download_task_pdf(request, task_id):
+    task = get_object_or_404(Request, id=task_id, engineer=request.user)
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Title
+    elements.append(Paragraph(f"Task Submission Report", styles['Title']))
+    elements.append(Spacer(1, 12))
+
+    # Table data
+    data = [
+        ["Field", "Detail"],
+        ["Task ID", str(task.id)],
+        ["Task Type", task.type],
+        ["Location", task.location],
+        ["Status", task.status],
+        ["Submitted At", task.created_at.strftime('%d %b %Y, %I:%M %p')],
+    ]
+
+    table = Table(data, colWidths=[120, 300])
+    
+    # Status warna
+    status_color = colors.green if task.status=="Approved" else \
+                   colors.orange if task.status=="Pending" else \
+                   colors.red if task.status=="Rejected" else colors.grey
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#004aad")),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('BACKGROUND', (1,4), (1,4), status_color),  # highlight status
+        ('ALIGN',(0,0),(-1,-1),'LEFT'),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 11),
+        ('BOTTOMPADDING', (0,0), (-1,0), 8),
+        ('BACKGROUND', (0,1), (-1,-1), colors.whitesmoke),
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
+
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"task_{task.id}.pdf")
