@@ -354,7 +354,7 @@ def teamlead_dashboard(request):
 
     # Kira pending dan completed secara case-insensitive
     pending_tasks = Request.objects.filter(status__iexact='Pending').count()
-    completed_tasks = Request.objects.filter(status__iexact='Completed').count()
+    completed_tasks = Request.objects.filter(status__iexact='Approved').count()
 
     context = {
         'total_engineers': total_engineers,
