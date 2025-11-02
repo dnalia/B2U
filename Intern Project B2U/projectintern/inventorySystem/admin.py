@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, TechRefresh
+from .models import User, TechRefresh, AssignedTask, Request, Notification
 
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
@@ -18,3 +18,7 @@ admin.site.register(User, CustomUserAdmin)
 @admin.register(TechRefresh)
 class TechRefreshAdmin(admin.ModelAdmin):
     list_display = ('engineer_name', 'user_name', 'status')
+
+admin.site.register(AssignedTask)
+admin.site.register(Request)
+admin.site.register(Notification)
