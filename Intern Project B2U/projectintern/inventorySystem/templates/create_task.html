@@ -254,7 +254,7 @@ button:hover {
     <div class="update-form">
       <h3>Submit Task: {{ selected_task.replacement_type }}</h3>
 
-      <form method="POST" action="{% url 'submit_task' %}?task_id={{ selected_task.id }}" enctype="multipart/form-data">
+    <form method="POST" action="{% url 'submit_task' selected_task.id %}" enctype="multipart/form-data">
         {% csrf_token %}
         <label>Engineer Name</label>
         <input type="text" name="engineer_name" value="{{ user.username }}" readonly>

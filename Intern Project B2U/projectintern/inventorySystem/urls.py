@@ -40,6 +40,8 @@ urlpatterns = [
     path('task-history/<int:engineer_id>/', views.task_history, name='task_history'),
     path('engineer-tasks/', views.engineer_tasks, name='engineer_tasks'),
     path('systemengineer/create_task/', views.create_task, name='create_task'),
-    path('systemengineer/submit_task/', views.submit_task, name='submit_task'),
+    #path('systemengineer/submit_task/', views.submit_task, name='submit_task'),
+    path('systemengineer/submit_task/<int:task_id>/', views.submit_task, name='submit_task'),
+
 
 ]
