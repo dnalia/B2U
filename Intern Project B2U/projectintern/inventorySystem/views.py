@@ -115,55 +115,78 @@ Q(engineer__username__icontains=search_query) |
     }
 
     return render(request, 'manage_requests.html', context)
-
 @login_required
 def submit_task(request, task_id):
     task = get_object_or_404(AssignedTask, id=task_id, engineer=request.user)
 
     if request.method == 'POST':
-        # Create submission
+        # Ambil SEMUA data dari form
+        selected_status = request.POST.get('status', 'Done')
+        old_hostname = request.POST.get('old_hostname', '')
+        new_hostname = request.POST.get('new_hostname', '')
+        old_serial = request.POST.get('old_serial', '')
+        new_serial = request.POST.get('new_serial', '')
+        rescheduled_date = request.POST.get('rescheduled_date', None)
+        format_status = request.POST.get('format_status', '')
+        reason_not_formatted = request.POST.get('reason_not_formatted', '')
+        upload_status = request.POST.get('upload_status', '')
+        reason_not_uploaded = request.POST.get('reason_not_uploaded', '')
+        remarks = request.POST.get('remarks', '')
+        proof_file = request.FILES.get('proof')
+
+        # 1. Update AssignedTask dengan data yang user isi
+        task.status = selected_status
+        task.old_hostname = old_hostname
+        task.new_hostname = new_hostname
+        task.remarks = remarks
+        if proof_file:
+            task.proof = proof_file
+        task.save()
+
+        # 2. Create Submission
         Submission.objects.create(
             engineer=request.user,
             task=task,
             status="Pending Verification"
         )
 
-        # Update task status
-        task.status = "Done"
-        task.save()
-
-        # Create corresponding Request for Team Lead to verify
+        # 3. Create Request untuk Team Lead
+        teamlead_user = User.objects.filter(role='TeamLead').first()
         Request.objects.create(
             engineer=request.user,
-            type="Tech Refresh",  # or pull from task.replacement_type if you have it
-            location=task.location,
-            user=task.username,
-            old_barcode=task.barcode,
-            new_barcode=task.serial_number,
-            status="Pending",
-            assigned_approver=User.objects.filter(role='TeamLead').first(),
+            type=task.replacement_type or "Tech Refresh",
+            location=task.location or "N/A",
+            user=task.username or "N/A",
+            old_barcode=task.barcode or "",
+            new_barcode=task.serial_number or "",
+            old_hostname=old_hostname or "",
+            new_hostname=new_hostname or "",
+            old_serial=old_serial or task.barcode or "",
+            new_serial=new_serial or task.serial_number or "",
+            old_ip=None,
+            new_ip=None,
+            new_mac="",
+            rescheduled_date=rescheduled_date if rescheduled_date else None,
+            format_status=format_status or "Pending",
+            upload_status=upload_status or "Not Yet",
+            reason_not_formatted=reason_not_formatted or "",
+            reason_not_uploaded=reason_not_uploaded or "",
+            remarks=remarks or "",
+            proof=task.proof if task.proof else None,
+            assigned_approver=teamlead_user
         )
 
-        # Notify Team Lead
-        Notification.objects.create(
-            user=User.objects.filter(role='TeamLead').first(),
-            message=f"New request submitted by {request.user.username} for {task.username}"
-        )
+        # 4. Notify Team Lead
+        if teamlead_user:
+            Notification.objects.create(
+                user=teamlead_user,
+                message=f"New request submitted by {request.user.username} for {task.username}"
+            )
 
         messages.success(request, "Task submitted successfully!")
         return redirect('my_submissions')
 
     return render(request, 'my_submissions.html', {'task': task})
-
-@login_required
-def systemengineer_tasks(request):
-    assigned_tasks = AssignedTask.objects.filter(engineer=request.user)
-    tasks_json = serializers.serialize('json', assigned_tasks)
-    return render(request, 'create_tasks.html', {
-        'assigned_tasks': assigned_tasks,
-        'tasks_json': tasks_json
-    })
-
 
 @login_required
 def engineer_tasks(request):

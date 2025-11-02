@@ -27,6 +27,7 @@ class AssignedTask(models.Model):
     phone_number = models.CharField(max_length=20)
     lan_id = models.CharField(max_length=50)
     location = models.CharField(max_length=100)
+    old_hostname = models.CharField(max_length=100, blank=True, null=True)  # Field baru
     replacement_type = models.CharField(
         max_length=50,
         choices=[
@@ -143,7 +144,7 @@ class Request(models.Model):
     reason_not_formatted = models.TextField(blank=True, null=True)
     reason_not_uploaded = models.TextField(blank=True, null=True)
     remarks = models.TextField(blank=True, null=True)
-    proof = models.FileField(upload_to='', blank=True, null=True)
+    proof = models.FileField(upload_to='proofs/', null=True, blank=True)
 
     assigned_approver = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -282,6 +283,8 @@ class AssignedTask(models.Model):
     engineer = models.ForeignKey(User, on_delete=models.CASCADE)
     barcode = models.CharField(max_length=100)
     serial_number = models.CharField(max_length=100)
+    old_hostname = models.CharField(max_length=100, blank=True, null=True)  # Field baru
+    new_hostname = models.CharField(max_length=100, blank=True, null=True)  # Field baru
     username = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     lan_id = models.CharField(max_length=50, blank=True, null=True)
@@ -313,3 +316,5 @@ class Submission(models.Model):
     task = models.ForeignKey(AssignedTask, on_delete=models.CASCADE)
     status = models.CharField(max_length=50, default="Pending Verification")
     submitted_date = models.DateTimeField(auto_now_add=True)
+
+

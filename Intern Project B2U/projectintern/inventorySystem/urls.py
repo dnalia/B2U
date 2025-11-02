@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.homepage, name='homepage'),
@@ -40,6 +42,8 @@ urlpatterns = [
     path('task-history/<int:engineer_id>/', views.task_history, name='task_history'),
     path('engineer-tasks/', views.engineer_tasks, name='engineer_tasks'),
     path('systemengineer/create_task/', views.create_task, name='create_task'),
-    path('systemengineer/submit_task/', views.submit_task, name='submit_task'),
+    #path('systemengineer/submit_task/', views.submit_task, name='submit_task'),
+    path('systemengineer/submit_task/<int:task_id>/', views.submit_task, name='submit_task'),
 
-]
+
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

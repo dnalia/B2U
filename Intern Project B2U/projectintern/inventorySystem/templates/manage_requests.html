@@ -226,7 +226,15 @@
           <td>{{ req.user }}</td>
           <td class="status-{{ req.status|lower }}">{{ req.status }}</td>
           <td>{{ req.created_at|date:"Y-m-d H:i" }}</td>
-          <td>{% if req.proof %}<a href="{{ req.proof }}" target="_blank">View</a>{% else %}N/A{% endif %}</td>
+          <td>
+              {% if req.proof %}
+                <a href="{{ req.proof.url }}" target="_blank">View</a>
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+
+
           <td>
             <button class="btn view-btn" onclick="openPopup('req-{{ req.id }}')">View</button>
             {% if req.status == "Pending" %}
@@ -254,17 +262,17 @@
       <p><strong>Location:</strong> {{ req.location }}</p>
       <p><strong>Status:</strong> {{ req.status }}</p>
       <p><strong>Submitted At:</strong> {{ req.created_at|date:"Y-m-d H:i" }}</p>
-      <p><strong>Old Hostname:</strong> {{ req.old_hostname }}</p>
-      <p><strong>New Hostname:</strong> {{ req.new_hostname }}</p>
-      <p><strong>Old Serial Number:</strong> {{ req.old_serial }}</p>
-      <p><strong>New Serial Number:</strong> {{ req.new_serial }}</p>
-      <p><strong>Rescheduled Date:</strong> {{ req.rescheduled_date }}</p>
-      <p><strong>Format Status:</strong> {{ req.format_status }}</p>
-      <p><strong>Reason (if not formatted):</strong> {{ req.reason_not_formatted }}</p>
-      <p><strong>Upload Status:</strong> {{ req.upload_status }}</p>
-      <p><strong>Reason (if not uploaded):</strong> {{ req.reason_not_uploaded }}</p>
-      <p><strong>Remarks:</strong> {{ req.remarks }}</p>
-      <p><strong>Proof:</strong> {% if req.proof %}<a href="{{ req.proof }}" target="_blank">View Uploaded Proof</a>{% else %}N/A{% endif %}</p>
+      <p><strong>Old Hostname:</strong> {{ req.old_hostname|default:"Not provided" }}</p>
+      <p><strong>New Hostname:</strong> {{ req.new_hostname|default:"Not provided" }}</p>
+      <p><strong>Old Serial Number:</strong> {{ req.old_serial|default:"N/A" }}</p>
+      <p><strong>New Serial Number:</strong> {{ req.new_serial|default:"N/A" }}</p>
+      <p><strong>Rescheduled Date:</strong> {{ req.rescheduled_date|default:"N/A" }}</p>
+      <p><strong>Format Status:</strong> {{ req.format_status|default:"N/A" }}</p>
+      <p><strong>Reason (if not formatted):</strong> {{ req.reason_not_formatted|default:"N/A" }}</p>
+      <p><strong>Upload Status:</strong> {{ req.upload_status|default:"N/A" }}</p>
+      <p><strong>Reason (if not uploaded):</strong> {{ req.reason_not_uploaded|default:"N/A" }}</p>
+      <p><strong>Remarks:</strong> {{ req.remarks|default:"No remarks" }}</p>
+      <p><strong>Proof:</strong> {% if req.proof %}<a href="{{ req.proof.url }}" target="_blank">View Uploaded Proof</a>{% else %}N/A{% endif %}</p>
     </div>
   </div>
   {% endfor %}
@@ -280,16 +288,6 @@ function closePopup(id) {
   if (popup) popup.style.display = 'none';
 }
 </script>
-
-
-  <script>
-    function openPopup(id) {
-      document.getElementById('popup-' + id).style.display = 'flex';
-    }
-    function closePopup(id) {
-      document.getElementById('popup-' + id).style.display = 'none';
-    }
-  </script>
 
 </body>
 </html>
