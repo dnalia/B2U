@@ -121,39 +121,61 @@ def submit_task(request, task_id):
     task = get_object_or_404(AssignedTask, id=task_id, engineer=request.user)
 
     if request.method == 'POST':
-        # Create submission
+        # Ambil status dari dropdown Engineer (contoh: "Done" / "In Progress")
+        selected_status = request.POST.get('status', 'Done')  # default Done
+
+        # 1. Update AssignedTask status
+        task.status = selected_status
+        task.save()
+
+        # 2. Create Submission
         Submission.objects.create(
             engineer=request.user,
             task=task,
             status="Pending Verification"
         )
 
-        # Update task status
-        task.status = "Done"
-        task.save()
-
-        # Create corresponding Request for Team Lead to verify
+        # 3. Create corresponding Request untuk Team Lead
+        teamlead_user = User.objects.filter(role='TeamLead').first()
         Request.objects.create(
             engineer=request.user,
-            type="Tech Refresh",  # or pull from task.replacement_type if you have it
-            location=task.location,
-            user=task.username,
-            old_barcode=task.barcode,
-            new_barcode=task.serial_number,
-            status="Pending",
-            assigned_approver=User.objects.filter(role='TeamLead').first(),
+            type=task.replacement_type or "Tech Refresh",
+            location=task.location or "N/A",
+            user=task.username or "N/A",
+            old_barcode=task.barcode or "",
+            new_barcode=task.serial_number or "",
+            old_hostname=task.old_hostname or "",  # sesuaikan dengan model
+            new_hostname=task.new_hostname or "",
+            old_serial=task.barcode or "",
+            new_serial=task.serial_number or "",
+            old_ip=None,
+            new_ip=None,
+            new_mac="",
+            rescheduled_date=None,
+            # Kalau Engineer pilih Done, Team Lead nampak Completed
+            format_status="Completed" if task.status == "Done" else "Pending",
+            upload_status="Completed" if task.proof else "Not Yet",
+            reason_not_formatted="",
+            reason_not_uploaded="",
+            remarks=task.remarks or "",
+            proof=task.proof if task.proof else None,
+            assigned_approver=teamlead_user
         )
 
-        # Notify Team Lead
-        Notification.objects.create(
-            user=User.objects.filter(role='TeamLead').first(),
-            message=f"New request submitted by {request.user.username} for {task.username}"
-        )
+        # 4. Notify Team Lead
+        if teamlead_user:
+            Notification.objects.create(
+                user=teamlead_user,
+                message=f"New request submitted by {request.user.username} for {task.username}"
+            )
 
         messages.success(request, "Task submitted successfully!")
         return redirect('my_submissions')
 
+    # GET request, render form
     return render(request, 'my_submissions.html', {'task': task})
+
+
 
 @login_required
 def systemengineer_tasks(request):
