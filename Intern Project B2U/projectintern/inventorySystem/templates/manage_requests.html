@@ -270,6 +270,19 @@
   {% endfor %}
 
   <script>
+function openPopup(id) {
+  const popup = document.getElementById('popup-' + id);
+  if (popup) popup.style.display = 'flex';
+  else console.error('Popup not found for ID:', id);
+}
+function closePopup(id) {
+  const popup = document.getElementById('popup-' + id);
+  if (popup) popup.style.display = 'none';
+}
+</script>
+
+
+  <script>
     function openPopup(id) {
       document.getElementById('popup-' + id).style.display = 'flex';
     }

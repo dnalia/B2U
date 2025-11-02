@@ -717,8 +717,33 @@ def manage_engineers(request):
 
     engineers = User.objects.filter(role='SystemEngineer')
     return render(request, "manage_engineers.html", {"engineers": engineers})
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Request  # pastikan model betul
 
 @login_required
+def approve_request(request, req_id):
+    req = get_object_or_404(Request, id=req_id)
+    req.status = "Approved"
+    req.save()
+    messages.success(request, "Request has been approved successfully.")
+    return redirect('manage_requests')
+
+
+@login_required
+def reject_request(request, req_id):
+    req = get_object_or_404(Request, id=req_id)
+    req.status = "Rejected"
+    req.save()
+    messages.error(request, "Request has been rejected.")
+    return redirect('manage_requests')
+
+
+'''@login_required
 def approve_request(request, req_id):
     submission = Submission.objects.get(id=req_id)
     submission.status = "Approved"
@@ -743,7 +768,7 @@ def reject_request(request, req_id):
         message=f"Your submitted task has been rejected ❌"
     )
 
-    return redirect('manage_requests')
+    return redirect('manage_requests')'''
 
 def reports(request):
     engineer_name = request.GET.get('engineer_name', '')
