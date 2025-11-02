@@ -115,17 +115,32 @@ Q(engineer__username__icontains=search_query) |
     }
 
     return render(request, 'manage_requests.html', context)
-
 @login_required
 def submit_task(request, task_id):
     task = get_object_or_404(AssignedTask, id=task_id, engineer=request.user)
 
     if request.method == 'POST':
-        # Ambil status dari dropdown Engineer (contoh: "Done" / "In Progress")
-        selected_status = request.POST.get('status', 'Done')  # default Done
+        # Ambil SEMUA data dari form
+        selected_status = request.POST.get('status', 'Done')
+        old_hostname = request.POST.get('old_hostname', '')
+        new_hostname = request.POST.get('new_hostname', '')
+        old_serial = request.POST.get('old_serial', '')
+        new_serial = request.POST.get('new_serial', '')
+        rescheduled_date = request.POST.get('rescheduled_date', None)
+        format_status = request.POST.get('format_status', '')
+        reason_not_formatted = request.POST.get('reason_not_formatted', '')
+        upload_status = request.POST.get('upload_status', '')
+        reason_not_uploaded = request.POST.get('reason_not_uploaded', '')
+        remarks = request.POST.get('remarks', '')
+        proof_file = request.FILES.get('proof')
 
-        # 1. Update AssignedTask status
+        # 1. Update AssignedTask dengan data yang user isi
         task.status = selected_status
+        task.old_hostname = old_hostname
+        task.new_hostname = new_hostname
+        task.remarks = remarks
+        if proof_file:
+            task.proof = proof_file
         task.save()
 
         # 2. Create Submission
@@ -135,7 +150,7 @@ def submit_task(request, task_id):
             status="Pending Verification"
         )
 
-        # 3. Create corresponding Request untuk Team Lead
+        # 3. Create Request untuk Team Lead
         teamlead_user = User.objects.filter(role='TeamLead').first()
         Request.objects.create(
             engineer=request.user,
@@ -144,20 +159,19 @@ def submit_task(request, task_id):
             user=task.username or "N/A",
             old_barcode=task.barcode or "",
             new_barcode=task.serial_number or "",
-            old_hostname=task.old_hostname or "",  # sesuaikan dengan model
-            new_hostname=task.new_hostname or "",
-            old_serial=task.barcode or "",
-            new_serial=task.serial_number or "",
+            old_hostname=old_hostname or "",
+            new_hostname=new_hostname or "",
+            old_serial=old_serial or task.barcode or "",
+            new_serial=new_serial or task.serial_number or "",
             old_ip=None,
             new_ip=None,
             new_mac="",
-            rescheduled_date=None,
-            # Kalau Engineer pilih Done, Team Lead nampak Completed
-            format_status="Completed" if task.status == "Done" else "Pending",
-            upload_status="Completed" if task.proof else "Not Yet",
-            reason_not_formatted="",
-            reason_not_uploaded="",
-            remarks=task.remarks or "",
+            rescheduled_date=rescheduled_date if rescheduled_date else None,
+            format_status=format_status or "Pending",
+            upload_status=upload_status or "Not Yet",
+            reason_not_formatted=reason_not_formatted or "",
+            reason_not_uploaded=reason_not_uploaded or "",
+            remarks=remarks or "",
             proof=task.proof if task.proof else None,
             assigned_approver=teamlead_user
         )
@@ -172,20 +186,7 @@ def submit_task(request, task_id):
         messages.success(request, "Task submitted successfully!")
         return redirect('my_submissions')
 
-    # GET request, render form
     return render(request, 'my_submissions.html', {'task': task})
-
-
-
-@login_required
-def systemengineer_tasks(request):
-    assigned_tasks = AssignedTask.objects.filter(engineer=request.user)
-    tasks_json = serializers.serialize('json', assigned_tasks)
-    return render(request, 'create_tasks.html', {
-        'assigned_tasks': assigned_tasks,
-        'tasks_json': tasks_json
-    })
-
 
 @login_required
 def engineer_tasks(request):
